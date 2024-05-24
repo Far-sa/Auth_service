@@ -1,0 +1,25 @@
+your-project/
+├── cmd/
+│   └── main.go  # Main application entry point
+├── delivery/
+│   └── grpc/
+│       ├── grpc_server.go  # gRPC server logic
+│       └── auth_handler.go  # gRPC service method handlers
+├── domain/
+│   ├── entities/  # Domain entity definitions (optional)
+│   ├── param/     # Domain parameter structs for requests/responses (optional)
+│   └── services/   # Domain service interfaces and implementations
+│       ├── authentication_service.go  # Authentication service interface
+│       └── service.go                # Concrete implementation of the service
+├── go.mod        # Dependency management file
+├── go.sum        # Dependency checksum file
+├── infrastructure/
+│   # ... (database, messaging infrastructure code)
+├── interfaces/
+│   └── user.go     # Interface for user entity (optional)
+├── main.go        # Placeholder file (can be removed if not used)
+├── Makefile      # Build automation script (optional)
+└── pb/
+    ├── auth_grpc.pb.go  # Generated gRPC service definitions
+    ├── auth.pb.go       # Protobuf definitions for messages
+    └── auth.proto       # Original Protobuf service definition file

@@ -14,4 +14,18 @@ export PATH=$PATH:$(go env GOPATH)/bin
 wire ./internal/di
 
 
+TODO Consider using gRPC-Gateway if you want to provide a more user-friendly API exploration experience through a RESTful interface.
+
+protoc \
+  -I=path/to/your/proto \
+  --grpc-gateway_out=path/to/output \
+  --grpc-gateway_paths=path/to/swagger.yaml \
+  auth.proto
+
+Replace placeholders with actual paths:
+path/to/your/proto: Path to your directory containing auth.proto.
+path/to/output: Path to generate the gateway code (e.g., gateway).
+path/to/swagger.yaml: Path to generate the Swagger specification file (e.g., swagger.yaml).
+
+
 

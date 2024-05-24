@@ -6,24 +6,27 @@ option go_package = "authentication-service/pb";
 
 
 service AuthService {
-  rpc SignUp (SignUpRequest) returns (SignUpResponse);
-  rpc SignIn (SignInRequest) returns (SignInResponse);
+  // Login RPC method
+  rpc Login (LoginRequest) returns (LoginResponse);
+  // Register RPC method
+  rpc Register (RegisterRequest) returns (RegisterResponse);
 }
 
-message SignUpRequest {
-  string username = 1;
+message LoginRequest {
+  string username_or_email = 1;
   string password = 2;
 }
 
-message SignUpResponse {
-  string message = 1;
+message LoginResponse {
+  string access_token = 1;
+  // ... other fields as needed (e.g., refresh token, user information)
 }
 
-message SignInRequest {
-  string username = 1;
-  string password = 2;
+message RegisterRequest {
+  // ... user registration details (username, email, password etc.)
 }
 
-message SignInResponse {
-  string token = 1;
+message RegisterResponse {
+  string user_id = 1;
+  // ... other fields as needed
 }

@@ -14,6 +14,20 @@ const (
 )
 
 func main() {
+
+	// conn, err := amqp.Dial("amqp://guest:guest@rabbitmq:5672/")
+	// if err != nil {
+	// 	log.Fatalf("Failed to connect to RabbitMQ: %v", err)
+	// }
+	// defer conn.Close()
+
+	// consumer, err := messaging.NewRabbitMQConsumer(conn)
+	// if err != nil {
+	// 	log.Fatalf("Failed to create RabbitMQ consumer: %v", err)
+	// }
+
+	// Start consuming messages
+	//defer consumer.channel.Close()
 	// Initialize Authz Handler with DI
 	authzHandler, cleanup, err := di.InitializeAuthzHandler()
 	if err != nil {

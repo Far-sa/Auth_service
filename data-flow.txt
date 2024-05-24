@@ -1,3 +1,53 @@
+Event Publishing and Consuming
+1. Authentication Service
+Event: UserAuthenticated
+When Published: After a successful user authentication.
+Subscribers: Authorization Service (to update user roles or permissions).
+2. Authorization Service
+Event: UserRolesUpdated
+When Published: When user roles or permissions are updated.
+Subscribers: Any service that requires user role updates (not specified here but could be relevant in some scenarios).
+3. Product Catalog Service
+Event: ProductViewed
+
+When Published: When a product is viewed by a user.
+Subscribers: Analytics Service (for tracking user activity, not detailed here).
+Event: ProductAddedToCart
+
+When Published: When a product is added to the cart.
+Subscribers: Cart Service (to add the product to the user's cart).
+Event: ProductStockUpdated
+
+When Published: When a product's stock is updated.
+Subscribers: Inventory Service (to update stock levels).
+4. Cart Service
+Event: CartUpdated
+When Published: When items are added to or removed from the cart.
+Subscribers: Order Service (to create an order from the cart).
+5. Order Service
+Event: OrderCreated
+
+When Published: When a new order is created.
+Subscribers: Payment Service (to process the payment), Inventory Service (to update stock levels), and Shipping Service (to initiate shipping, not detailed here).
+Event: OrderPaid
+
+When Published: When an order is paid.
+Subscribers: Inventory Service (to confirm stock deduction), Shipping Service.
+6. Payment Service
+Event: PaymentProcessed
+When Published: When a payment is successfully processed.
+Subscribers: Order Service (to update order status).
+7. User Service
+Event: UserCreated
+When Published: When a new user is created.
+Subscribers: Authorization Service (to assign initial roles), Email Service (to send a welcome email, not detailed here).
+8. Inventory Service
+Event: StockUpdated
+When Published: When stock levels are updated.
+Subscribers: Product Catalog Service (to update available stock).
+
+
+######
 Scenario: User visits the web page, browses, selects a product, adds it to the cart, checks out, and makes a purchase.
 
 Data Flow:

@@ -36,26 +36,28 @@ func (r *RabbitMQConnection) Close() {
 	}
 }
 
-type RabbitMQPublisher struct {
-	connection *RabbitMQConnection
-}
+// TODO consume method
 
-func NewRabbitMQPublisher(connection *RabbitMQConnection) *RabbitMQPublisher {
-	return &RabbitMQPublisher{connection}
-}
+// type RabbitMQPublisher struct {
+// 	connection *RabbitMQConnection
+// }
 
-func (p *RabbitMQPublisher) Publish(event string, data []byte) error {
-	return p.connection.channel.Publish(
-		"",    // exchange
-		event, // routing key
-		false, // mandatory
-		false, // immediate
-		amqp.Publishing{
-			ContentType: "application/json",
-			Body:        data,
-		},
-	)
-}
+// func NewRabbitMQPublisher(connection *RabbitMQConnection) *RabbitMQPublisher {
+// 	return &RabbitMQPublisher{connection}
+// }
+
+// func (p *RabbitMQPublisher) Publish(event string, data []byte) error {
+// 	return p.connection.channel.Publish(
+// 		"",    // exchange
+// 		event, // routing key
+// 		false, // mandatory
+// 		false, // immediate
+// 		amqp.Publishing{
+// 			ContentType: "application/json",
+// 			Body:        data,
+// 		},
+// 	)
+// }
 
 func SetupRabbitMQ(conn *amqp.Connection) error {
 	channel, err := conn.Channel()

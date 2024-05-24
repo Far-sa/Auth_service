@@ -1,0 +1,36 @@
+{
+  "rabbit_version": "3.8.0",
+  "users": [
+    {
+      "name": "guest",
+      "password_hash": "YbHoX4h8kAKv9iVBvbO9XvI1MEqHknRmWftCTJiUlRGfOXkQ",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": "administrator"
+    }
+  ],
+  "vhosts": [
+    {
+      "name": "/"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "guest",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "queues": [
+    {
+      "name": "stock_updated",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    }
+  ],
+  "exchanges": [],
+  "bindings": []
+}

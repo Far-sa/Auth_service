@@ -1,0 +1,38 @@
+image: golang:1.19.3-alpine  # Adjust Go version as needed
+
+stages:
+  - build
+  - test
+  - integration_test  # Optional
+  - deploy          # Production only
+
+build:
+  stage: build
+  script:
+    - go mod download
+    - go build -o cmd/your-app .  # Adjust build command as needed
+
+test:
+  stage: test
+  script:
+    - go test -v ./...
+
+# integration_test:  # Optional
+#   stage: integration_test
+#   script:
+#     - # ... (your integration test commands)
+
+# deploy:
+#   stage: deploy
+#   only:
+#     - master  # Deploy only on pushes to master branch
+#   environment:
+#     name: production  # Specify production environment
+#     variables:
+#       DATABASE_URL: postgres://user:password@host:port/dbname  # Replace with actual values (use secrets management in production)
+#   script:
+#     - docker-compose run --rm db  # Start database container (adjust if using a different setup)
+#     - go run -mod=vendor ./cmd/migrate -up  # Run migrations in a separate container (adjust command)
+#     - docker build -t your-app-image .  # Build container image
+#     - docker push your-app-image:latest  # Push image to registry
+

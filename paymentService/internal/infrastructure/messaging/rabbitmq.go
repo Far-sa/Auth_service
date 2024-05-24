@@ -74,3 +74,55 @@ func (r *RabbitMQ) Close() {
 	r.channel.Close()
 	r.conn.Close()
 }
+
+//!!
+func NewRabbitMQConsumer(conn *amqp.Connection) (*RabbitMQConsumer, error) {
+    ch, err := conn.Channel()
+    if err != nil {
+        return nil, err
+    }
+
+    q, err := ch.QueueDeclare(
+        "order_created_queue", // name
+        true,                  // durable
+        false,                 // delete when unused
+        false,                 // exclusive
+        false,                 // no-wait
+        nil,                   // arguments
+    )
+    if err != nil {
+        return nil, err
+    }
+
+    err = ch.QueueBind(
+        q.Name,           // queue name
+        "order.created",  // routing key
+        "order_exchange", // exchange
+        false,
+        nil)
+    if err != nil {
+        return nil, err
+    }
+
+    msgs, err := ch.Consume(
+        q.Name, // queue
+        "",     // consumer
+        true,   // auto-ack
+        false,  // exclusive
+        false,  // no-local
+        false,  // no-wait
+        nil,    // args
+    )
+    if err != nil {
+        return nil, err
+    }
+
+    go func() {
+        for d := range msgs {
+            log.Printf("Received a message: %s", d.Body)
+            // Process the message
+        }
+    }()
+
+    return &RabbitMQConsumer{channel: ch}, nil
+}
