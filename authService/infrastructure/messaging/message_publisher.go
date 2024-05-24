@@ -3,22 +3,21 @@ package messaging
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"log"
 
-	"github.com/rabbitmq/amqp091-go"
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 // MessagePublisher defines methods for publishing messages
-type MessagePublisher interface {
-	Publish(ctx context.Context, topic string, message interface{}) error
-}
 
 type RabbitMQPublisher struct {
-	conn *amqp091.Connection
-	ch   *amqp091.Channel
+	conn *amqp.Connection
+	ch   *amqp.Channel
 }
 
 func NewRabbitMQPublisher(connStr string) (*RabbitMQPublisher, error) {
-	conn, err := amqp091.Dial(connStr)
+	conn, err := amqp.Dial(connStr)
 	if err != nil {
 		return nil, err
 	}
@@ -27,13 +26,13 @@ func NewRabbitMQPublisher(connStr string) (*RabbitMQPublisher, error) {
 		return nil, err
 	}
 	err = ch.ExchangeDeclare(
-		"",      // Name of the exchange
-		"topic", // Exchange type (fanout for broadcasting)
-		false,   // Durable (survives server restarts)
-		false,   // Delete when unused
-		false,   // Internal
-		false,   // No wait
-		nil,     // Arguments
+		"auth_exchange", // Name of the exchange
+		"topic",         // Exchange type (fanout for broadcasting)
+		false,           // Durable (survives server restarts)
+		false,           // Delete when unused
+		false,           // Internal
+		false,           // No wait
+		nil,             // Arguments
 	)
 	if err != nil {
 		return nil, err
@@ -41,12 +40,30 @@ func NewRabbitMQPublisher(connStr string) (*RabbitMQPublisher, error) {
 	return &RabbitMQPublisher{conn: conn, ch: ch}, nil
 }
 
+func (p *RabbitMQPublisher) PublishUserAuthenticated(userID string) error {
+	body := fmt.Sprintf("UserAuthenticated: %s", userID)
+	err := p.ch.Publish(
+		"auth_exchange",      // exchange
+		"user.authenticated", // routing key
+		false,                // mandatory
+		false,                // immediate
+		amqp.Publishing{
+			ContentType: "text/plain",
+			Body:        []byte(body),
+		})
+	if err != nil {
+		return err
+	}
+	log.Printf(" [x] Sent %s", body)
+	return nil
+}
+
 func (p *RabbitMQPublisher) Publish(ctx context.Context, message interface{}) error {
 	body, err := json.Marshal(message)
 	if err != nil {
 		return err
 	}
-	err = p.ch.PublishWithContext(ctx, "", "", false, false, amqp091.Publishing{
+	err = p.ch.PublishWithContext(ctx, "", "", false, false, amqp.Publishing{
 		ContentType: "application/json",
 		Body:        body,
 	})

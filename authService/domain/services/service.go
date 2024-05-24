@@ -4,6 +4,7 @@ import (
 	"authentication-service/domain/entities"
 	"authentication-service/domain/param"
 	"authentication-service/interfaces"
+	"authentication-service/utils"
 	"context"
 	"errors"
 
@@ -11,11 +12,6 @@ import (
 )
 
 // AuthenticationService interface defines methods for user authentication
-type AuthenticationService interface {
-	Login(ctx context.Context, loginRequest param.LoginRequest) (*entities.User, error)
-	Register(ctx context.Context, user entities.User) (*entities.User, error)
-	// ... other authentication methods (e.g., refresh token)
-}
 
 // AuthService implements the AuthenticationService interface
 type AuthService struct {
@@ -46,9 +42,26 @@ func (s *AuthService) Login(ctx context.Context, loginRequest param.LoginRequest
 		return nil, errors.New("Invalid credentials")
 	}
 
-	//TODO generate tokens
+	//TODO generate tokens- use utils package
+	// Generate tokens using the utils package
+	accessToken, err := utils.GenerateAccessToken(user.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Optionally, generate a refresh token as well
+	refreshToken, err := utils.GenerateRefreshToken(user.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Set the tokens to the user entity or a custom auth response if required
+	user.AccessToken = accessToken
+	user.RefreshToken = refreshToken
+
 	return user, nil
 }
+
 func (s *AuthService) Register(ctx context.Context, req param.RegisterRequest) error {
 	// Hash the user's password before storing it
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
@@ -71,7 +84,7 @@ func (s *AuthService) Register(ctx context.Context, req param.RegisterRequest) e
 
 	// Optionally, publish a UserRegisteredEvent after successful registration
 	if s.messagePublisher != nil {
-		err := s.messagePublisher.Publish(ctx, &events.UserRegisteredEvent{UserID: user.ID})
+		err := s.messagePublisher.PublishUserAuthenticated(user.ID)
 		if err != nil {
 			return err
 		}

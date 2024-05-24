@@ -6,6 +6,12 @@ import (
 	"log"
 )
 
+type RoleRepository interface {
+	AssignRole(username, role string) error
+	UpdateUserRoles(userID string, role string) error
+	CheckPermission(username, permission string) (bool, error)
+}
+
 type PostgresRoleRepository struct {
 	db *sql.DB
 }
@@ -33,4 +39,10 @@ func (r *PostgresRoleRepository) CheckPermission(username, permission string) (b
 		return false, err
 	}
 	return hasPermission, nil
+}
+
+func (r *PostgresRoleRepository) UpdateUserRoles(userID string, role string) error {
+	log.Printf("Updating roles for user: %s to role: %s", userID, role)
+	// Logic to update roles in the database
+	return nil
 }

@@ -19,5 +19,5 @@ type UserRepository interface {
 }
 
 type MessagePublisher interface {
-	Publish(ctx context.Context, message interface{}) error
+	PublishUserAuthenticated(userID string) error
 }

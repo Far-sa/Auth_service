@@ -1,15 +1,23 @@
 syntax = "proto3";
 
-package pb;
-
 option go_package = "authentication-service/pb";
 
+import "google/api/annotations.proto";
 
 service AuthService {
-  // Login RPC method
-  rpc Login (LoginRequest) returns (LoginResponse);
-  // Register RPC method
-  rpc Register (RegisterRequest) returns (RegisterResponse);
+  rpc Login(LoginRequest) returns (LoginResponse) {
+    option (google.api.http) = {
+      post : "/v1/login"
+      body : "*"
+    };
+  }
+
+  rpc Register(RegisterRequest) returns (RegisterResponse) {
+    option (google.api.http) = {
+      post : "/v1/register"
+      body : "*"
+    };
+  }
 }
 
 message LoginRequest {
@@ -17,16 +25,12 @@ message LoginRequest {
   string password = 2;
 }
 
-message LoginResponse {
-  string access_token = 1;
-  // ... other fields as needed (e.g., refresh token, user information)
-}
+message LoginResponse { string access_token = 1; }
 
 message RegisterRequest {
-  // ... user registration details (username, email, password etc.)
+  string username = 1;
+  string email = 2;
+  string password = 3;
 }
 
-message RegisterResponse {
-  string user_id = 1;
-  // ... other fields as needed
-}
+message RegisterResponse { string message = 1; }

@@ -27,5 +27,25 @@ path/to/your/proto: Path to your directory containing auth.proto.
 path/to/output: Path to generate the gateway code (e.g., gateway).
 path/to/swagger.yaml: Path to generate the Swagger specification file (e.g., swagger.yaml).
 
+after update proto file
+protoc --go_out=. --go-grpc_out=. --go_opt=paths=source_relative --go-grpc_opt=paths=source_relative pb/auth.proto
+protoc --grpc-gateway_out=. --grpc-gateway_opt=paths=source_relative --grpc-gateway_opt=logtostderr=true pb/auth.proto
+
+
+
+
+mkdir -p third_party/google/api
+cd third_party/google/api
+curl -O https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/annotations.proto
+curl -O https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/http.proto
+
+
+
+
+protoc -I. -Ithird_party --go_out=. --go-grpc_out=. --go_opt=paths=source_relative --go-grpc_opt=paths=source_relative pb/auth.proto
+protoc -I. -Ithird_party --grpc-gateway_out=. --grpc-gateway_opt=paths=source_relative --grpc-gateway_opt=logtostderr=true pb/auth.proto
+
+
+
 
 
