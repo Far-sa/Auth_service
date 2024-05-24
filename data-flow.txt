@@ -1,0 +1,131 @@
+User visits the webpage: User authentication and authorization.
+User browses and selects a product: Product catalog interaction.
+User adds the product to the cart: Shopping cart management.
+User proceeds to checkout and makes a purchase: Order processing and payment.
+
+# User visits the webpage:
+
+Frontend: The user accesses the e-commerce webpage.
+Backend: The Authentication Service (microservice) is called via gRPC to verify the user's identity.
+Database: The Authentication Service interacts with the User Database to validate credentials.
+Authorization: Once authenticated, the Authorization Service checks the user's permissions.
+
+# User browses and selects a product:
+
+Frontend: The user navigates through the product catalog.
+Backend: The Product Catalog Service (microservice) is called via gRPC to fetch product details.
+Database: The Product Catalog Service interacts with the Product Database to retrieve product information.
+
+# User adds the product to the cart:
+
+Frontend: The user adds the desired product to their shopping cart.
+Backend: The Cart Service (microservice) is called via gRPC to update the cart.
+Database: The Cart Service interacts with the Cart Database to store the cart information.
+
+# User proceeds to checkout and makes a purchase:
+
+Frontend: The user proceeds to the checkout page and confirms the order.
+Backend:
+The Order Service (microservice) is called via gRPC to create an order.
+The Payment Service (microservice) is called via gRPC to process the payment.
+
+Event-Driven Communication:
+The Order Service publishes an order created event.
+The Inventory Service (microservice) subscribes to the order created event to update stock levels.
+
+Database:
+The Order Service interacts with the Order Database to store order details.
+The Payment Service interacts with the Payment Gateway and updates the Payment Database.
+The Inventory Service interacts with the Inventory Database to update stock levels.
+
+
+Authentication and Authorization:
+Authentication Service:
+
+Input: User credentials (username and password or token).
+Process: Validate credentials against the User Database.
+Output: Authentication token (JWT or similar) if valid.
+Authorization Service:
+
+Input: Authentication token and requested resource/action.
+Process: Check user permissions based on the token.
+Output: Access granted or denied response.
+
+######### Use Cases:
+
+# User Authentication:
+
+Actor: User
+Description: The user provides credentials to log in.
+Preconditions: The user has valid credentials.
+Postconditions: The user is authenticated and receives an authentication token.
+
+# View Product Catalog:
+
+Actor: User
+Description: The user browses available products.
+Preconditions: The user is authenticated.
+Postconditions: The user can view product details.
+
+# Add Product to Cart:
+
+Actor: User
+Description: The user adds a selected product to their shopping cart.
+Preconditions: The user is authenticated and a product is selected.
+Postconditions: The product is added to the user's cart.
+
+# Proceed to Checkout:
+
+Actor: User
+Description: The user confirms the purchase and provides payment information.
+Preconditions: The user has products in the cart and is authenticated.
+Postconditions: The order is created, payment is processed, and inventory is updated.
+
+
+1-Authentication Service: Handles user authentication (login, logout) and token generation.
+2-Authorization Service: Manages user permissions and access control.
+3-Product Catalog Service: Manages the product catalog, including listing products and retrieving product details.
+4-Cart Service: Manages the user's shopping cart, including adding, updating, and removing items.
+5-Order Service: Handles order creation, order details, and order history.
+6-Payment Service: Processes payments and interacts with the payment gateway.
+7-Inventory Service: Manages inventory levels and updates stock based on orders.
+8-User Service (Optional but recommended): Manages user profiles, account details, and related information.
+Detailed Service Breakdown
+Authentication Service:
+
+Responsibilities: User login, token generation, and logout.
+Database: User Database for storing credentials and tokens.
+Authorization Service:
+
+Responsibilities: Verify user permissions for accessing resources.
+Database: Role-based access control data.
+Product Catalog Service:
+
+Responsibilities: Listing products, product details, and product search.
+Database: Product Database for storing product information.
+Cart Service:
+
+Responsibilities: Manage the shopping cart for users, including add, update, and remove items.
+Database: Cart Database for storing user cart information.
+Order Service:
+
+Responsibilities: Create and manage orders, handle order history.
+Database: Order Database for storing order details.
+Payment Service:
+
+Responsibilities: Process payments and handle transactions.
+Database: Payment Database for storing transaction details.
+External Integration: Payment Gateway for actual payment processing.
+Inventory Service:
+
+Responsibilities: Manage and update inventory levels.
+Database: Inventory Database for storing stock levels and product availability.
+User Service (Optional):
+
+Responsibilities: Manage user profiles and account details.
+Database: User Profile Database for storing additional user information.
+Event-Driven Communication
+Order Created Event: Published by the Order Service and consumed by the Inventory Service to update stock levels.
+Communication
+gRPC: Used for synchronous communication between services.
+Event-Driven/Messaging: Used for asynchronous communication, such as updating inventory levels after an order is created.
