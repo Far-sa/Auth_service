@@ -1,29 +1,50 @@
 version: '3.8'
 
 services:
-  rabbitmq:
-    image: rabbitmq:3-management
-    ports:
-      - "5672:5672"
-      - "15672:15672"
+  # Replace with your actual service names
+  service1:
+    build: ./service1
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      # Database connection details for service1
+      DATABASE_HOST: service1-db
+      DATABASE_PORT: 5432  # Example port for PostgreSQL
+      DATABASE_USER: username
+      DATABASE_PASSWORD: password
+    ports:
+      - "8080:8080"  # Example port mapping for service1
 
-  authorization-service:
-    build: ./authorization-service
-    depends_on:
-      - rabbitmq
+  service2:
+    build: ./service2
     environment:
-      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+      # Database connection details for service2
+      DATABASE_HOST: service2-db
+      DATABASE_PORT: 5432  # Example port for PostgreSQL
+      DATABASE_USER: username
+      DATABASE_PASSWORD: password
     ports:
-      - "50052:50052"
+      - "8081:8081"  # Example port mapping for service2
 
-  authentication-service:
-    build: ./authentication-service
-    depends_on:
-      - rabbitmq
+  # ... (other service definitions)
+
+  # Database services (optional, adjust based on your database choice)
+  service1-db:
+    image: postgres:latest
     environment:
-      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
-    ports:
-      - "50051:50051"
+      POSTGRES_PASSWORD: password  # Set a strong password
+    volumes:
+      - service1-db-data:/var/lib/postgresql/data  # Persistent data volume (optional)
+
+  service2-db:
+    image: postgres:latest
+    environment:
+      POSTGRES_PASSWORD: password  # Set a strong password
+    volumes:
+      - service2-db-data:/var/lib/postgresql/data  # Persistent data volume (optional)
+
+# ... (other database service definitions if needed)
+
+volumes:
+  # Volumes for persistent database data (optional)
+  service1-db-data: {}
+  service2-db-data: {}
+
