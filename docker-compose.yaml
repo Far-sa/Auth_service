@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 networks:
   auth-network:
@@ -8,12 +8,8 @@ networks:
   rabbitmq-network:
     driver: bridge
 
-
-
 x-common-env: &common-env
   RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq:5672/
-
-
 
 services:
   auth-service:
@@ -37,7 +33,6 @@ services:
       - auth-network
       - rabbitmq-network
 
-
   authz-service:
     build:
       context: ./authorizeSvc
@@ -50,7 +45,7 @@ services:
     environment:
       <<: *common-env
       DATABASE_URL: postgres://${AUTHZ_SERVICE_DB_USER}:${AUTHZ_SERVICE_DB_PASSWORD}@postgres-authz:5432/${AUTHZ_SERVICE_DB_NAME}
-     # RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq:5672/
+      # RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq:5672/
     depends_on:
       - postgres-authz
       - rabbitmq
@@ -59,7 +54,6 @@ services:
       - authz-network
       - rabbitmq-network
 
-
   postgres-auth:
     image: postgres:13
     container_name: auth-db
@@ -67,14 +61,14 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "5432:5432"
+      - "5433:5432" #? Map to a different port on the host
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
       interval: 10s
       timeout: 5s
       retries: 5
     volumes:
-      - ./data/authDB/postgres_data:/var/lib/postgresql/data       
+      - ./data/authDB/postgres_data:/var/lib/postgresql/data
     networks:
       - auth-network
 
@@ -85,7 +79,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "5432:5432"
+      - "5434:5432" #? Map to a different port on the host
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
       interval: 10s
@@ -94,7 +88,7 @@ services:
     networks:
       - authz-network
     volumes:
-      - ./data/authzDB/postgres_data:/var/lib/postgresql/data 
+      - ./data/authzDB/postgres_data:/var/lib/postgresql/data
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -109,12 +103,11 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    volumes:
-      - ./config/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
-      - ./config/definitions.json:/etc/rabbitmq/definitions.json
+    # volumes:
+    #   - ./config/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+    #   - ./config/definitions.json:/etc/rabbitmq/definitions.json
     networks:
       - rabbitmq-network
-
 # networks:
 #   auth-network:
 #     external: true
@@ -123,15 +116,13 @@ services:
 #   rabbitmq-network:
 #     external: true
 
-
 #!
 # version: '3.8'
-
 
 # networks:
 #   ecomm_network:
 #     driver: bridge
-    
+
 # services:
 #   rabbitmq:
 #     image: rabbitmq:3-management
@@ -368,7 +359,6 @@ services:
 #       - "50058:50058"
 #     networks:
 #       - ecomm_network
-
 
 # volumes:
 #   pgdata-authentication:

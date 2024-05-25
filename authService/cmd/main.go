@@ -46,12 +46,12 @@ func main() {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
-	dsn := ""
+	dsn := "postgres://auth_user:auth_password@postgres-auth:5432/auth_db?sslmode=disable"
 	db, _ := database.NewSQLDB(dsn)
 	// Initialize repository, service, and handler
 	userRepo := database.NewPostgresUserRepository(db)
-	
-	amqpUrl := ""
+
+	amqpUrl := "amqp://guest:guest@rabbitmq:5672/"
 	publisher, _ := messaging.NewRabbitMQPublisher(amqpUrl)
 	authService := services.NewAuthService(userRepo, publisher)
 

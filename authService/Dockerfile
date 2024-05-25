@@ -29,4 +29,4 @@ COPY --from=builder /app/auth-svc /app/auth-svc
 EXPOSE 50051
 
 # Run the executable
-CMD ["/app/auth-service"]
+CMD ["/app/auth-svc"]

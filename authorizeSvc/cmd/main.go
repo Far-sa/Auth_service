@@ -57,7 +57,7 @@ func main() {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
-	dsn := ""
+	dsn := "postgres://authz_user:authz_password@postgres-authz:5432/authz_db?sslmode=disable"
 	db, err := database.NewSQLDB(dsn)
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
@@ -67,7 +67,7 @@ func main() {
 	// Initialize repository, service, and handler
 	userRepo := database.NewPostgresRoleRepository(db)
 
-	amqpUrl := ""
+	amqpUrl := "amqp://guest:guest@rabbitmq:5672/"
 	rabbitAdapter, err := rabbitmq.NewRabbitMQAdapter(amqpUrl)
 	if err != nil {
 		log.Fatalf("Failed to create RabbitMQ adapter: %v", err)
