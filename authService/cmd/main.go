@@ -46,7 +46,6 @@ func main() {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
-	//TODO init Database
 	dsn := ""
 	db, _ := database.NewSQLDB(dsn)
 	// Initialize repository, service, and handler
@@ -55,8 +54,16 @@ func main() {
 	publisher, _ := messaging.NewRabbitMQPublisher(amqpUrl)
 	authService := services.NewAuthService(userRepo, publisher)
 
-	go runGRPCServer(lis, authService)
+	// grpc := delivery.NewGRPCServer(authService)
 
+	// // Use the Serve function from the gRPC server implementation
+	// go func() {
+	// 	if err := grpc.Serve(lis); err != nil {
+	// 		log.Fatalf("Failed to serve gRPC server: %v", err)
+	// 	}
+	// }()
+
+	go runGRPCServer(lis, authService)
 	ctx := context.Background()
 	if err := runHTTPGateway(ctx, lis.Addr().String()); err != nil {
 		log.Fatalf("Failed to run gRPC-Gateway: %v", err)

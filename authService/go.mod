@@ -3,6 +3,7 @@ module authentication-service
 go 1.22.3
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.20.0
 	github.com/lib/pq v1.10.9

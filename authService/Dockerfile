@@ -17,7 +17,7 @@ RUN go mod download
 COPY . .
 
 # Build the Go app
-RUN go build -o /authentication-service cmd/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o auth-service cmd/main.go
 
 # Stage 2: Create a minimal runtime image
 FROM alpine:latest
@@ -29,10 +29,10 @@ RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 
 # Copy the built Go app from the builder stage
-COPY --from=builder /authorization-service .
+COPY --from=builder /app/auth-service .
 
 # Expose port 50052 to the outside world
 EXPOSE 50052
 
 # Run the executable
-CMD ["./authentication-service"]
+CMD ["./auth-service"]
