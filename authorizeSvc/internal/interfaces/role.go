@@ -5,6 +5,7 @@ import "context"
 type AuthorizationService interface {
 	AssignRole(ctx context.Context, username, role string) error
 	CheckPermission(ctx context.Context, username, permission string) (bool, error)
+	HandleUserAuthenticatedEvent(ctx context.Context, message string) error
 }
 
 type RoleRepository interface {

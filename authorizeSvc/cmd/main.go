@@ -12,7 +12,8 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -55,8 +56,8 @@ func main() {
 	// Initialize repository, service, and handler
 	userRepo := database.NewPostgresRoleRepository(db)
 	amqpUrl := ""
-	consumer, _ := messaging.NewRabbitMQConsumer(amqpUrl)
-	authService := service.NewAuthorizationService(userRepo, consumer)
+	consumer, _ := messaging.NewRabbitMQConsumer(amqpUrl, authzService)
+	authzService := service.NewAuthorizationService(userRepo, consumer)
 
 	// grpc := delivery.NewGRPCServer(authService)
 
@@ -67,7 +68,7 @@ func main() {
 	// 	}
 	// }()
 
-	go runGRPCServer(lis, authService)
+	go runGRPCServer(lis, authzService)
 	ctx := context.Background()
 	if err := runHTTPGateway(ctx, lis.Addr().String()); err != nil {
 		log.Fatalf("Failed to run gRPC-Gateway: %v", err)
