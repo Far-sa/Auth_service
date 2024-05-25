@@ -51,12 +51,12 @@ func runHTTPGateway(ctx context.Context, grpcEndpoint string) error {
 }
 
 func main() {
-	lis, err := net.Listen("tcp", ":50052")
+	lis, err := net.Listen("tcp", ":50051")
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
-	dsn := "your_postgres_dsn"
+	dsn := ""
 	db, err := database.NewSQLDB(dsn)
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
@@ -66,7 +66,7 @@ func main() {
 	// Initialize repository, service, and handler
 	userRepo := database.NewPostgresRoleRepository(db)
 
-	amqpUrl := "your_rabbitmq_url"
+	amqpUrl := ""
 	rabbitAdapter, err := rabbitmq.NewRabbitMQAdapter(amqpUrl)
 	if err != nil {
 		log.Fatalf("Failed to create RabbitMQ adapter: %v", err)

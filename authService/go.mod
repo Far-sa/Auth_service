@@ -1,6 +1,6 @@
 module authentication-service
 
-go 1.22.3
+go 1.22
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2

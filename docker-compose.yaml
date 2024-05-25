@@ -1,32 +1,100 @@
 version: '3.8'
 
+networks:
+  auth-network:
+    driver: bridge
+  authz-network:
+    driver: bridge
+  rabbitmq-network:
+    driver: bridge
+
+
+
+x-common-env: &common-env
+  RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq:5672/
+
+
+
 services:
   auth-service:
-    image: ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
+    build:
+      context: ./authService
+      dockerfile: Dockerfile
+    image: auth-svc-5.0.0
+    #image: ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
+    container_name: auth-mofid
     ports:
       - "50051:50051"
     environment:
-      - DATABASE_URL=postgres://${DB_USERNAME}:${DB_PASSWORD}@postgres:5432/${DB_NAME}?sslmode=disable
-      #- DATABASE_URL=postgres://postgres:password@postgres:5432/auth_db?sslmode=disable
-      - RABBITMQ_URL=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq:5672/
-      #- RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+      <<: *common-env
+      DATABASE_URL: postgres://${AUTH_SERVICE_DB_USER}:${AUTH_SERVICE_DB_PASSWORD}@postgres-auth:5432/${AUTH_SERVICE_DB_NAME}
+      #RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq:5672/
     depends_on:
-      - postgres
+      - postgres-auth
       - rabbitmq
+    restart: always
+    networks:
+      - auth-network
+      - rabbitmq-network
 
-  postgres:
-    image: postgres:13
+
+  authz-service:
+    build:
+      context: ./authorizeSvc
+      dockerfile: Dockerfile
+    image: authz-svc-5.0.0
+    #image: ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
+    container_name: authz-mofid
+    ports:
+      - "50052:50052"
     environment:
-      POSTGRES_USER: ${DB_USERNAME}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+      <<: *common-env
+      DATABASE_URL: postgres://${AUTHZ_SERVICE_DB_USER}:${AUTHZ_SERVICE_DB_PASSWORD}@postgres-authz:5432/${AUTHZ_SERVICE_DB_NAME}
+     # RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq:5672/
+    depends_on:
+      - postgres-authz
+      - rabbitmq
+    restart: always
+    networks:
+      - authz-network
+      - rabbitmq-network
+
+
+  postgres-auth:
+    image: postgres:13
+    container_name: auth-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "${DB_USERNAME}"]
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
       interval: 10s
       timeout: 5s
       retries: 5
+    volumes:
+      - ./data/authDB/postgres_data:/var/lib/postgresql/data       
+    networks:
+      - auth-network
+
+  postgres-authz:
+    image: postgres:13
+    container_name: authz-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - authz-network
+    volumes:
+      - ./data/authzDB/postgres_data:/var/lib/postgresql/data 
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -44,7 +112,16 @@ services:
     volumes:
       - ./config/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
       - ./config/definitions.json:/etc/rabbitmq/definitions.json
+    networks:
+      - rabbitmq-network
 
+# networks:
+#   auth-network:
+#     external: true
+#   authz-network:
+#     external: true
+#   rabbitmq-network:
+#     external: true
 
 
 #!

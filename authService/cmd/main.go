@@ -50,6 +50,7 @@ func main() {
 	db, _ := database.NewSQLDB(dsn)
 	// Initialize repository, service, and handler
 	userRepo := database.NewPostgresUserRepository(db)
+	
 	amqpUrl := ""
 	publisher, _ := messaging.NewRabbitMQPublisher(amqpUrl)
 	authService := services.NewAuthService(userRepo, publisher)
