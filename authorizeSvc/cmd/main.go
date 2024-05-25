@@ -8,6 +8,7 @@ import (
 	"authorization-service/internal/interfaces"
 	"authorization-service/internal/service"
 	"authorization-service/pb"
+
 	"context"
 	"log"
 	"net"

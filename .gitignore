@@ -47,4 +47,3 @@ go.work
 
 .env
 ./data
-./txt.*

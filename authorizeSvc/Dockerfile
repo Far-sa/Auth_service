@@ -1,35 +1,62 @@
-
-
-# Stage 1: Build the application
+# Use the official Golang image as the builder
 FROM golang:1.22-alpine AS builder
 
-# Install dependencies
-RUN apk add --no-cache git
 
-# Set the current working directory inside the container
+# Set the Current Working Directory inside the container
 WORKDIR /app
 
-# Copy go mod and sum files
+# Copy go.mod and go.sum files
 COPY go.mod go.sum ./
-RUN go mod download && go mod verify
 
-# Copy the source code into the container
+# Copy the entire project
 COPY . .
 
-# Build the Go app
-RUN go build -o /app/authz-service
+# Download all dependencies. Dependencies will be cached if the go.mod and go.sum files are not changed
+RUN go mod tidy
 
-# Stage 2: Create a minimal runtime image
+# Build the Go app
+RUN go build -o /app/authz-svc ./cmd
+
+# Start a new stage from scratch
 FROM alpine:latest
 
-# Install necessary dependencies
-RUN apk --no-cache add ca-certificates
 
-# Copy the built Go app from the builder stage
-COPY --from=builder /app/authz-service .
+# Copy the pre-built binary from the builder stage
+COPY --from=builder /app/authz-svc /app/authz-svc
 
-# Expose port 50052 to the outside world
-EXPOSE 50052
+# Expose port 8080 to the outside world
+EXPOSE 8080
 
-# Run the executable
-CMD ["./authz-service"]
+# Command to run the executable
+CMD ["/app/authz-svc"]
+
+
+# # Stage 1: Build the application
+# FROM golang:1.22-alpine AS builder
+
+# # Set the current working directory inside the container
+# WORKDIR /app/cmd
+
+# # Copy go mod and sum files
+# COPY go.mod go.sum ./
+# RUN go mod download && go mod verify
+
+# # Copy the source code into the container
+# COPY . /app 
+# RUN ls -la
+
+# # Build the Go app
+# RUN go build -o /app/authz-svc
+
+# # Stage 2: Create a minimal runtime image
+# FROM alpine:latest
+
+
+# # Copy the built Go app from the builder stage
+# COPY --from=builder /app/authz-svc .
+
+# # Expose port 50052 to the outside world
+# EXPOSE 50052
+
+# # Run the executable
+# CMD ["./authz-svc"]
