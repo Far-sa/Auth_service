@@ -1,7 +1,8 @@
 package service
 
 import (
-	"authorization-service/interfaces"
+	"authorization-service/internal/interfaces"
+	"context"
 	"encoding/json"
 	"log"
 )
@@ -15,17 +16,17 @@ func NewAuthorizationService(roleRepository interfaces.RoleRepository, publisher
 	return &AuthorizationService{roleRepository: roleRepository, publisher: publisher}
 }
 
-func (s *AuthorizationService) HandleUserAuthenticatedEvent(message string) error {
+func (s *AuthorizationService) HandleUserAuthenticatedEvent(ctx context.Context, message string) error {
 	// Extract user information from the message
 	userID := extractUserIDFromMessage(message)
 	log.Printf("Handling UserAuthenticated event for user: %s", userID)
 
 	// Update user roles/permissions in the repository
-	return s.roleRepository.UpdateUserRoles(userID, "new_role")
+	return s.roleRepository.UpdateUserRoles(ctx, userID, "new_role")
 }
 
-func (s *AuthorizationService) AssignRole(username, role string) error {
-	err := s.roleRepository.AssignRole(username, role)
+func (s *AuthorizationService) AssignRole(ctx context.Context, username, role string) error {
+	err := s.roleRepository.AssignRole(ctx, username, role)
 	if err != nil {
 		return err
 	}
@@ -40,8 +41,8 @@ func (s *AuthorizationService) AssignRole(username, role string) error {
 	return nil
 }
 
-func (s *AuthorizationService) CheckPermission(username, permission string) (bool, error) {
-	return s.roleRepository.CheckPermission(username, permission)
+func (s *AuthorizationService) CheckPermission(ctx context.Context, username, permission string) (bool, error) {
+	return s.roleRepository.CheckPermission(ctx, username, permission)
 }
 
 func extractUserIDFromMessage(message string) string {

@@ -1,7 +1,7 @@
 package messaging
 
 import (
-	"authorization-service/internal/infrastructure/messaging/rabbitmq"
+	"authorization-service/infrastructure/messaging/rabbitmq"
 	"log"
 )
 

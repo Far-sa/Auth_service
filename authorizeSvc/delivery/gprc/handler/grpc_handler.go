@@ -1,22 +1,22 @@
 package handler
 
 import (
-	"authorization-service/internal/app/service"
+	"authorization-service/internal/interfaces"
 	"authorization-service/pb"
 	"context"
 )
 
 type AuthzHandler struct {
 	pb.UnimplementedAuthorizationServiceServer
-	service *service.AuthzService
+	service interfaces.AuthorizationService
 }
 
-func NewAuthzHandler(service *service.AuthzService) *AuthzHandler {
+func NewAuthzHandler(service interfaces.AuthorizationService) *AuthzHandler {
 	return &AuthzHandler{service: service}
 }
 
 func (h *AuthzHandler) AssignRole(ctx context.Context, req *pb.AssignRoleRequest) (*pb.AssignRoleResponse, error) {
-	err := h.service.AssignRole(req.Username, req.Role)
+	err := h.service.AssignRole(ctx, req.Username, req.Role)
 	if err != nil {
 		return nil, err
 	}
@@ -24,7 +24,7 @@ func (h *AuthzHandler) AssignRole(ctx context.Context, req *pb.AssignRoleRequest
 }
 
 func (h *AuthzHandler) CheckPermission(ctx context.Context, req *pb.CheckPermissionRequest) (*pb.CheckPermissionResponse, error) {
-	hasPermission, err := h.service.CheckPermission(req.Username, req.Permission)
+	hasPermission, err := h.service.CheckPermission(ctx, req.Username, req.Permission)
 	if err != nil {
 		return nil, err
 	}
