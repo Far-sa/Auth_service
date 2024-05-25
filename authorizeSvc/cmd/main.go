@@ -4,6 +4,7 @@ import (
 	"authorization-service/delivery/gprc/handler"
 	"authorization-service/infrastructure/database"
 	"authorization-service/infrastructure/messaging"
+	"authorization-service/infrastructure/messaging/rabbitmq"
 	"authorization-service/internal/interfaces"
 	"authorization-service/internal/service"
 	"authorization-service/pb"
@@ -11,6 +12,9 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 
@@ -22,7 +26,7 @@ const (
 	defaultPort = "50052"
 )
 
-func runGRPCServer(lis net.Listener, authzService interfaces.AuthorizationService) {
+func runGRPCServer(lis net.Listener, authzService interfaces.AuthorizationService) error {
 	grpcServer := grpc.NewServer()
 	authzHandler := handler.NewAuthzHandler(authzService)
 	pb.RegisterAuthorizationServiceServer(grpcServer, authzHandler)
@@ -32,6 +36,7 @@ func runGRPCServer(lis net.Listener, authzService interfaces.AuthorizationServic
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalf("Failed to serve gRPC server: %v", err)
 	}
+	return nil
 }
 
 func runHTTPGateway(ctx context.Context, grpcEndpoint string) error {
@@ -51,26 +56,69 @@ func main() {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
-	dsn := ""
-	db, _ := database.NewSQLDB(dsn)
+	dsn := "your_postgres_dsn"
+	db, err := database.NewSQLDB(dsn)
+	if err != nil {
+		log.Fatalf("Failed to connect to database: %v", err)
+	}
+	// defer db.Close()
+
 	// Initialize repository, service, and handler
 	userRepo := database.NewPostgresRoleRepository(db)
-	amqpUrl := ""
-	consumer, _ := messaging.NewRabbitMQConsumer(amqpUrl, authzService)
+
+	amqpUrl := "your_rabbitmq_url"
+	rabbitAdapter, err := rabbitmq.NewRabbitMQAdapter(amqpUrl)
+	if err != nil {
+		log.Fatalf("Failed to create RabbitMQ adapter: %v", err)
+	}
+	defer rabbitAdapter.Close()
+
+	consumer, err := messaging.NewRabbitMQConsumer(rabbitAdapter, "user_authenticated_queue", "user.authenticated", "auth_exchange", nil)
+	if err != nil {
+		log.Fatalf("Failed to create RabbitMQ consumer: %v", err)
+	}
+
 	authzService := service.NewAuthorizationService(userRepo, consumer)
 
-	// grpc := delivery.NewGRPCServer(authService)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-	// // Use the Serve function from the gRPC server implementation
-	// go func() {
-	// 	if err := grpc.Serve(lis); err != nil {
-	// 		log.Fatalf("Failed to serve gRPC server: %v", err)
-	// 	}
-	// }()
+	go func() {
+		if err := authzService.Start(); err != nil {
+			log.Printf("Authorization service stopped with error: %v", err)
+			cancel()
+		}
+	}()
 
-	go runGRPCServer(lis, authzService)
-	ctx := context.Background()
-	if err := runHTTPGateway(ctx, lis.Addr().String()); err != nil {
-		log.Fatalf("Failed to run gRPC-Gateway: %v", err)
+	// Start the authorization service
+	go func() {
+		if err := runGRPCServer(lis, authzService); err != nil {
+			log.Printf("gRPC server stopped with error: %v", err)
+			cancel()
+		}
+	}()
+
+	//go runGRPCServer(lis, authzService)
+
+	go func() {
+		if err := runHTTPGateway(ctx, lis.Addr().String()); err != nil {
+			log.Printf("Failed to run gRPC-Gateway: %v", err)
+			cancel()
+		}
+	}()
+
+	// Handle OS signals for graceful shutdown
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
+
+	select {
+	case <-ctx.Done():
+		log.Println("Shutdown initiated")
+	case sig := <-signalChan:
+		log.Printf("Received signal: %v. Shutting down...", sig)
+		cancel()
 	}
+
+	// Perform any cleanup tasks here if necessary
+	log.Println("Server gracefully stopped")
 }

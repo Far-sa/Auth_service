@@ -2,48 +2,91 @@ package messaging
 
 import (
 	"authorization-service/infrastructure/messaging/rabbitmq"
+	"fmt"
 	"log"
+
+	amqp "github.com/rabbitmq/amqp091-go"
 )
+
+// RabbitMQConsumer handles consuming messages from RabbitMQ.
 
 type RabbitMQConsumer struct {
 	rabbitmqAdapter *rabbitmq.RabbitMQAdapter
-	handler         func(message string) error
+	queueName       string
+	routingKey      string
+	exchange        string
+	messageHandler  func(message string) error // Internal message handler
 }
 
-func NewRabbitMQConsumer(rabbitmqAdapter *rabbitmq.RabbitMQAdapter, handler func(message string) error) (*RabbitMQConsumer, error) {
+// NewRabbitMQConsumer creates a new RabbitMQConsumer with an internal message handler and sets up the queue and binding.
+func NewRabbitMQConsumer(rabbitmqAdapter *rabbitmq.RabbitMQAdapter, queueName, routingKey, exchange string, handler func(message string) error) (*RabbitMQConsumer, error) {
 	consumer := &RabbitMQConsumer{
 		rabbitmqAdapter: rabbitmqAdapter,
-		handler:         handler,
+		queueName:       queueName,
+		routingKey:      routingKey,
+		exchange:        exchange,
+		messageHandler:  handler,
 	}
 
-	err := consumer.setupQueueAndBinding("user_authenticated_queue", "user.authenticated", "auth_exchange")
-	if err != nil {
+	if err := consumer.setupQueueAndBinding(); err != nil {
 		return nil, err
 	}
 
-	go consumer.startConsuming("user_authenticated_queue")
 	return consumer, nil
 }
 
-func (r *RabbitMQConsumer) setupQueueAndBinding(queueName, routingKey, exchange string) error {
-	_, err := r.rabbitmqAdapter.CreateQueue(queueName)
-	if err != nil {
-		return err
+// setupQueueAndBinding sets up the queue and binding for the RabbitMQ consumer.
+func (r *RabbitMQConsumer) setupQueueAndBinding() error {
+	if _, err := r.rabbitmqAdapter.CreateQueue(r.queueName); err != nil {
+		return fmt.Errorf("failed to create queue: %w", err)
 	}
 
-	return r.rabbitmqAdapter.CreateBinding(queueName, routingKey, exchange)
+	if err := r.rabbitmqAdapter.CreateBinding(r.queueName, r.routingKey, r.exchange); err != nil {
+		return fmt.Errorf("failed to create binding: %w", err)
+	}
+
+	return nil
 }
 
-func (r *RabbitMQConsumer) startConsuming(queueName string) {
-	msgs, err := r.rabbitmqAdapter.Consume(queueName)
+// StartConsuming starts consuming messages from the configured queue.
+func (r *RabbitMQConsumer) StartConsuming() error {
+	msgs, err := r.rabbitmqAdapter.Consume(r.queueName)
 	if err != nil {
-		log.Fatalf("Failed to start consuming messages: %v", err)
+		return fmt.Errorf("failed to start consuming messages: %w", err)
 	}
 
-	for d := range msgs {
-		log.Printf("Received a message: %s", d.Body)
-		if err := r.handler(string(d.Body)); err != nil {
-			log.Printf("Error handling message: %s", err)
+	go func() {
+		for d := range msgs {
+			d := d // Create a local copy of the loop variable to avoid data races
+			if err := r.handleMessage(d); err != nil {
+				log.Printf("Error handling message: %v", err)
+			}
 		}
+	}()
+
+	return nil
+}
+
+func (r *RabbitMQConsumer) handleMessage(d amqp.Delivery) error {
+	log.Printf("Received a message: %s", d.Body)
+	if err := r.internalMessageHandler(string(d.Body)); err != nil {
+		// Optionally, you could nack the message here if you want it to be requeued or logged elsewhere
+		return fmt.Errorf("error processing message: %w", err)
 	}
+
+	// Acknowledge the message after successful processing
+	if err := d.Ack(false); err != nil {
+		return fmt.Errorf("error acknowledging message: %w", err)
+	}
+
+	return nil
+}
+
+// Example message handler
+func (r *RabbitMQConsumer) internalMessageHandler(message string) error {
+	log.Printf("Processing message: %s", message)
+	// Implement your message processing logic here
+	// For example, parse the message, process it, and store the results in a database
+
+	return nil
 }
