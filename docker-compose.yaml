@@ -32,6 +32,9 @@ services:
     networks:
       - auth-network
       - rabbitmq-network
+    volumes:
+      - ./.env:/app/.env
+      - ./authService/scripts:/docker-entrypoint-initdb.d  # Mount scripts folder for auth-service
 
   authz-service:
     build:
@@ -53,6 +56,9 @@ services:
     networks:
       - authz-network
       - rabbitmq-network
+    volumes:
+      - ./.env:/app/.env
+      - ./authorizeSvc/scripts:/docker-entrypoint-initdb.d  # Mount scripts folder for authz-service
 
   postgres-auth:
     image: postgres:13
@@ -60,6 +66,10 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # POSTGRES_DB: ${AUTH_SERVICE_DB_NAME}
+      # POSTGRES_DB: ${POSTGRES_DB}
+      # NEW_ROLE: ${AUTH_SERVICE_DB_USER}
+      # NEW_ROLE_PASSWORD: ${AUTH_SERVICE_DB_PASSWORD}
     ports:
       - "5433:5432" #? Map to a different port on the host
     healthcheck:
@@ -69,6 +79,8 @@ services:
       retries: 5
     volumes:
       - ./data/authDB/postgres_data:/var/lib/postgresql/data
+      - ./authService/scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+      # - ./.env:/docker-entrypoint-initdb.d/.env
     networks:
       - auth-network
 
@@ -78,6 +90,10 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # POSTGRES_DB: ${AUTHZ_SERVICE_DB_NAME}
+      # POSTGRES_DB: ${POSTGRES_DB}
+      # NEW_ROLE: ${AUTHZ_SERVICE_DB_USER}
+      # NEW_ROLE_PASSWORD: ${AUTHZ_SERVICE_DB_PASSWORD}
     ports:
       - "5434:5432" #? Map to a different port on the host
     healthcheck:
@@ -89,6 +105,8 @@ services:
       - authz-network
     volumes:
       - ./data/authzDB/postgres_data:/var/lib/postgresql/data
+      - ./authorizeSvc/scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+      # - ./.env:/docker-entrypoint-initdb.d/.env
 
   rabbitmq:
     image: rabbitmq:3-management

@@ -24,8 +24,12 @@ FROM alpine:latest
 # Copy the pre-built binary from the builder stage
 COPY --from=builder /app/authz-svc /app/authz-svc
 
+# COPY /scripts/init-db.sh /docker-entrypoint-initdb.d/
+# COPY ../../.env /docker-entrypoint-initdb.d/.env
+
+# RUN chmod +x /docker-entrypoint-initdb.d/init-db.sh
 # Expose port 8080 to the outside world
-EXPOSE 8080
+EXPOSE 50052
 
 # Command to run the executable
 CMD ["/app/authz-svc"]

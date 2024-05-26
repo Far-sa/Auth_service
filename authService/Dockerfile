@@ -25,6 +25,11 @@ RUN apk --no-cache add ca-certificates && rm -rf /var/cache/apk/*
 # Copy the built Go app from the builder stage
 COPY --from=builder /app/auth-svc /app/auth-svc
 
+# COPY scripts/init-db.sh /docker-entrypoint-initdb.d/
+# COPY ../../.env /docker-entrypoint-initdb.d/.env
+
+# RUN chmod +x /docker-entrypoint-initdb.d/init-db.sh
+
 # Expose port 50052 to the outside world
 EXPOSE 50051
 
