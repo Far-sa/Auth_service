@@ -1,0 +1,32 @@
+FROM migrate/migrate:v4.15.1
+
+# Copy the migration files
+COPY ./infrastructure/database/migrations /migrations
+
+# Create a separate directory for your custom script
+RUN mkdir /custom-init.d
+
+# Copy the initialization script
+COPY ./scripts/init_db.sh /custom-init.d/init_db.sh
+
+# Make the script executable
+RUN chmod +x /custom-init.d/init_db.sh
+
+# Optionally modify ENTRYPOINT to run both scripts
+ENTRYPOINT ["/docker-entrypoint-initdb.d", "/custom-init.d/init_db.sh"]
+
+
+
+# FROM migrate/migrate:v4.15.1
+
+# # Copy the migration files
+# COPY ./infrastructure/database/migrations /migrations
+
+# # Copy the initialization script
+# COPY init_db.sh /docker-entrypoint-initdb.d/init_db.sh
+
+# # Make the script executable
+# RUN chmod +x /docker-entrypoint-initdb.d/init_db.sh
+
+# # Run the initialization script by default
+# ENTRYPOINT ["/docker-entrypoint-initdb.d/init_db.sh"]

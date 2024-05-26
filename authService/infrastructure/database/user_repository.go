@@ -8,10 +8,10 @@ import (
 )
 
 type PostgresUserRepository struct {
-	db *sqlDB
+	db *SqlDB
 }
 
-func NewPostgresUserRepository(db *sqlDB) interfaces.UserRepository {
+func NewPostgresUserRepository(db *SqlDB) interfaces.UserRepository {
 	return &PostgresUserRepository{db: db}
 }
 

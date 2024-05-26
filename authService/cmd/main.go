@@ -4,6 +4,7 @@ import (
 	"authentication-service/delivery/grpc/handler"
 	"authentication-service/domain/services"
 	"authentication-service/infrastructure/database"
+	"authentication-service/infrastructure/database/migrator"
 	"authentication-service/infrastructure/messaging"
 	"authentication-service/interfaces"
 	"authentication-service/pb"
@@ -42,12 +43,23 @@ func runHTTPGateway(ctx context.Context, grpcEndpoint string) error {
 
 func main() {
 	lis, err := net.Listen("tcp", ":50052")
+
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
-	dsn := "postgres://auth_user:auth_password@postgres-auth:5432/auth_db?sslmode=disable"
-	db, _ := database.NewSQLDB(dsn)
+	db, _ := database.NewSQLDB()
+
+	// Create a new migrator instance.
+	migrator, err := migrator.NewMigrator(db.DB(), "../infrastructure/database/migrations") // Pass db instead of db.DB
+	if err != nil {
+		log.Fatalf("Failed to create migrator: %v", err)
+	}
+
+	// Apply all up migrations.
+	if err := migrator.Up(); err != nil {
+		log.Fatalf("Failed to migrate up: %v", err)
+	}
 	// Initialize repository, service, and handler
 	userRepo := database.NewPostgresUserRepository(db)
 

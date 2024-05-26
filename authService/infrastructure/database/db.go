@@ -4,18 +4,36 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
+	"strings"
 
 	_ "github.com/lib/pq" // Import Postgres driver (if using Postgres)
 )
 
-type sqlDB struct {
+type SqlDB struct {
 	db *sql.DB
 }
 
-func NewSQLDB(dataSourceName string) (*sqlDB, error) {
-	db, err := sql.Open("postgres", dataSourceName) // Adjust driver as needed
+// Add this method to the sqlDB type.
+func (s *SqlDB) DB() *sql.DB {
+	return s.db
+}
+
+func NewSQLDB() (*SqlDB, error) {
+
+	dsn := "postgres://root:password@postgres-auth:5432/auth-db?sslmode=disable" // Connect to the database directly
+	db, err := sql.Open("postgres", dsn)
 	if err != nil {
-		return nil, err
+		panic(fmt.Errorf("can not open postgres database: %v", err))
+	}
+
+	// Create the database if it doesn't exist.
+	_, err = db.Exec("CREATE DATABASE IF NOT EXISTS auth-db")
+	if err != nil {
+		// If the error is due to the database already existing, ignore it.
+		if !strings.Contains(err.Error(), "already exists") {
+			return nil, fmt.Errorf("failed to create database: %w", err)
+		}
 	}
 
 	// Set connection pool parameters (optional)
@@ -27,11 +45,11 @@ func NewSQLDB(dataSourceName string) (*sqlDB, error) {
 		return nil, errors.New("failed to ping database: " + err.Error())
 	}
 
-	return &sqlDB{db: db}, nil
+	return &SqlDB{db: db}, nil
 }
 
 // Reusable functions for common database interactions using prepared statements
-func (db *sqlDB) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
+func (db *SqlDB) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
 	stmt, err := db.db.PrepareContext(ctx, query)
 	if err != nil {
 		return nil, err
@@ -42,7 +60,7 @@ func (db *sqlDB) ExecContext(ctx context.Context, query string, args ...interfac
 	return result, err
 }
 
-func (db *sqlDB) QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row {
+func (db *SqlDB) QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row {
 	stmt, err := db.db.PrepareContext(ctx, query)
 	if err != nil {
 		return nil

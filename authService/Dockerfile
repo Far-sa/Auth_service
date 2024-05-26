@@ -1,4 +1,3 @@
-# Stage 1: Build the application
 FROM golang:1.22-alpine AS builder
 
 # Set the current working directory inside the container
@@ -7,34 +6,62 @@ WORKDIR /app
 # Copy go mod and sum files
 COPY go.mod go.sum ./
 
-RUN go mod download && go mod verify
+RUN go mod download
 
 # Copy the source code into the container
 COPY . .
 
 # Build the Go app
-RUN go build -o /app/auth-svc ./cmd
+RUN go build -o /app/auth-service ./cmd
 
-# Stage 2: Create a minimal runtime image
-#FROM alpine:latest
+# Minimal runtime image
 FROM alpine:latest
 
-# Install necessary dependencies and remove apk cache in one step
-RUN apk --no-cache add ca-certificates && rm -rf /var/cache/apk/*
+# Install necessary tools
+RUN apk add --no-cache ca-certificates postgresql-client
 
-# Copy the built Go app from the builder stage
-COPY --from=builder /app/auth-svc /app/auth-svc
+# Copy the built binary from the builder
+COPY --from=builder /app/auth-service /app/auth-service
 
-# COPY scripts/init-db.sh /docker-entrypoint-initdb.d/
-# COPY ../../.env /docker-entrypoint-initdb.d/.env
-
-# RUN chmod +x /docker-entrypoint-initdb.d/init-db.sh
-
-# Expose port 50052 to the outside world
+# Expose port for your service
 EXPOSE 50051
 
-# Run the executable
-CMD ["/app/auth-svc"]
+# Command to run your service
+CMD ["/app/auth-service"]
+
+#!!!
+# # Stage 1: Build the application
+# FROM golang:1.22-alpine AS builder
+
+# # Set the current working directory inside the container
+# WORKDIR /app
+
+# # Copy go mod and sum files
+# COPY go.mod go.sum ./
+
+# RUN go mod download && go mod verify
+
+# # Copy the source code into the container
+# COPY . .
+
+# # Build the Go app
+# RUN go build -o /app/auth-svc ./cmd
+
+# # Stage 2: Create a minimal runtime image
+# #FROM alpine:latest
+# FROM alpine:latest
+
+# # Install necessary dependencies and remove apk cache in one step
+# RUN apk --no-cache add ca-certificates && rm -rf /var/cache/apk/*
+
+# # Copy the built Go app from the builder stage
+# COPY --from=builder /app/auth-svc /app/auth-svc
+
+# # Expose port 50052 to the outside world
+# EXPOSE 50051
+
+# # Run the executable
+# CMD ["/app/auth-svc"]
 
 #! important
 # FROM alpine:latest AS builder
@@ -60,7 +87,7 @@ CMD ["/app/auth-svc"]
 # RUN apk add --no-cache <database_driver_package> && rm -rf /var/cache/apk/*
 
 # # Copy the built binary from the host (assuming Makefile builds it)
-# COPY ./bin/auth-service /app/auth-service  # Replace ./bin/auth-service with your actual output directory
+# COPY ./bin/auth-service /app/auth-service  
 
 # # Expose port for your service (replace with your service's port)
 # EXPOSE 8080

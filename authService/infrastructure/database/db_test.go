@@ -17,7 +17,7 @@ func TestNewSQLDB(t *testing.T) {
 
 	mock.ExpectPing()
 
-	sdb, err := database.NewSQLDB("postgres://postgres:password@localhost:5432/authdb")
+	sdb, err := database.NewSQLDB()
 	if sdb == nil || err != nil {
 		t.Errorf("Expected non-nil *sqlDB and no error, got %v and %v", sdb, err)
 	}

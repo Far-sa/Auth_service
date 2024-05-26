@@ -1,3 +1,4 @@
+#! make sure fist postgres service is running
 createdb:
 	docker exec -it postgres13 createdb --username=root --owner=root auth-db
 
@@ -10,8 +11,16 @@ migrateup:
 migratedown:
 	migrate -path infrastructure/database/migrations -database "postgresql://root:password@localhost:5432/auth_db?sslmode=disable" -verbose down
 
+build:
+    # Build your service binary using your chosen language's compiler (e.g., go build)
+	go build -o ./bin/auth-service ./cmd/auth-service
+
+# Optional target for cleaning up (remove built binary)
+clean:
+	rm -rf ./bin/auth-service
+
 # Commands
-.PHONY: createdb dropdb migrateup migratedown
+.PHONY: createdb dropdb migrateup migratedown build clean
 
 
 #! sqlc generate
