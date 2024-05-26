@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq
+spec:
+  replicas: 1 # Adjust the number of replicas as needed
+  selector:
+    matchLabels:
+      app: rabbitmq
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+    spec:
+      containers:
+        - name: rabbitmq
+          image: rabbitmq:3-management
+          ports:
+            - containerPort: 5672
+            - containerPort: 15672 # Management UI port
+          env:
+            - name: RABBITMQ_DEFAULT_USER
+              value: ${RABBITMQ_DEFAULT_USER} # Replace with actual username
+            - name: RABBITMQ_DEFAULT_PASS
+              value: ${RABBITMQ_DEFAULT_PASS} # Replace with actual password
+          healthcheck:
+            test: ["CMD", "rabbitmqctl", "status"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+          # volumes:  # Optional for custom configuration (replace with your config files)
+          #   - name: rabbitmq-config
+          #     configMap:
+          #       name: rabbitmq-config
+          restartPolicy: Always
+      networks:
+        - rabbitmq-network
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq
+spec:
+  selector:
+    app: rabbitmq
+  ports:
+    - port: 5672
+      targetPort: 5672
+      protocol: TCP
+  type: ClusterIP # Adjust type if needed (e.g., LoadBalancer)
+  networks:
+    - rabbitmq-network
+# Optional ConfigMap for custom RabbitMQ configuration (replace with your config)
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   name: rabbitmq-config
+# data:
+#   # ... Your custom RabbitMQ configuration ...

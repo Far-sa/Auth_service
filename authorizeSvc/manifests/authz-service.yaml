@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: authz-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: authz-service
+  template:
+    metadata:
+      labels:
+        app: authz-service
+    spec:
+      containers:
+      - name: authz-service
+        image: authz-svc-5.0.0  # Update with your image location if different
+        ports:
+        - containerPort: 50052
+        envFrom:
+        - configMapRef:
+            name: common-env
+        - secretRef:
+            name: authz-service-env
+        volumeMounts:
+        - name: app-env
+        - name: authz-service-scripts  # Mount scripts volume (optional)
+      volumes:
+      - name: app-env
+        configMap:
+          name: .env  # Reference the .env config map (replace with actual name)
+      - name: authz-service-scripts  # Volume for scripts (optional)
+        persistentVolumeClaim:
+          claimName: authz-service-scripts-pvc  # Reference your PVC (optional)
+      dependsOn:
+      - name: postgres-authz
+      - name: rabbitmq
+      restartPolicy: Always
+      networks:
+      - authz-network
+      

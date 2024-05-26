@@ -1,0 +1,116 @@
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: auth-service
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: auth-service
+#   template:
+#     metadata:
+#       labels:
+#         app: auth-service
+#     spec:
+#       containers:
+#         - name: auth-service
+#           image: your-docker-username/auth-service:latest
+#           ports:
+#             - containerPort: 50052
+#           env:
+#             - name: DATABASE_URL
+#               value: "postgres://postgres:postgres@postgres:5432/auth_db?sslmode=disable"
+#             - name: RABBITMQ_URL
+#               value: amqp://guest:guest@rabbitmq:5672/
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+spec:
+  replicas: 1  # Adjust the number of replicas as needed
+  selector:
+    matchLabels:
+      app: auth-service
+  template:
+    metadata:
+      labels:
+        app: auth-service
+    spec:
+      containers:
+      - name: auth-service
+        image: auth-svc-5.0.0  # Update with your image location if different
+        ports:
+        - containerPort: 50051
+        envFrom:
+        - configMapRef:
+            name: common-env  # Reference the common config map
+        - secretRef:
+            name: auth-service-env  # Reference a secret for service-specific env vars
+        volumeMounts:
+        - name: app-env  # Mount the .env file volume
+        - name: auth-service-scripts  # Mount scripts volume (optional)
+      volumes:
+      - name: app-env
+        configMap:
+          name: .env  # Reference the .env config map (replace with actual name)
+      - name: auth-service-scripts  # Volume for scripts (optional)
+        persistentVolumeClaim:
+          claimName: auth-service-scripts-pvc  # Reference your PVC (optional)
+      dependsOn:
+      - name: postgres-auth
+      - name: rabbitmq
+      restartPolicy: Always
+      networks:
+      - auth-network
+      - rabbitmq-network
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+spec:
+  selector:
+    app: auth-service
+  ports:
+  - port: 50051
+    targetPort: 50051
+    protocol: TCP
+  type: ClusterIP  # Adjust type if needed (e.g., LoadBalancer)
+  networks:
+  - auth-network
+
+---
+
+# Optional ConfigMap for .env (replace with actual name)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: .env
+data:
+  # ... Your environment variables from .env file ...
+
+---
+
+# Optional Secret for service-specific env vars
+apiVersion: v1
+kind: Secret
+metadata:
+  name: auth-service-env
+stringData:
+  DATABASE_URL: postgres://${AUTH_SERVICE_DB_USER}:${AUTH_SERVICE_DB_PASSWORD}@postgres-auth:5432/${AUTH_SERVICE_DB_NAME}  # Replace with actual env var
+
+---
+
+# Optional PersistentVolumeClaim for auth-service scripts
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: auth-service-scripts-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi  # Adjust storage size as needed

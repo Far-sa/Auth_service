@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-auth
+spec:
+  replicas: 1  # Adjust the number of replicas as needed
+  selector:
+    matchLabels:
+      app: postgres-auth
+  template:
+    metadata:
+      labels:
+        app: postgres-auth
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:13
+        ports:
+        - containerPort: 5432
+        envFrom:
+        - secretRef:
+            name: postgres-auth-env  # Reference Secret for credentials
+        volumeMounts:
+        - name: postgres-data  # Mount volume for database data
+      volumes:
+      - name: postgres-data
+        persistentVolumeClaim:
+          claimName: postgres-auth-pvc  # Reference your PVC for data persistence
+      restartPolicy: Always
+      networks:
+      - auth-network
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-auth
+spec:
+  selector:
+    app: postgres-auth
+  ports:
+  - port: 5432
+    targetPort: 5432
+    protocol: TCP
+  type: ClusterIP  # Adjust type if needed (e.g., LoadBalancer)
+  networks:
+  - auth-network
+
+---
+
+# Secret for database credentials
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-auth-env
+stringData:
+  POSTGRES_USER: ${POSTGRES_USER}  # Replace with actual username
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}  # Replace with actual password
+
+---
+
+# Optional PersistentVolumeClaim for database data (replace access modes and storage size)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-auth-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

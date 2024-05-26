@@ -35,3 +35,35 @@ EXPOSE 50051
 
 # Run the executable
 CMD ["/app/auth-svc"]
+
+#! important
+# FROM alpine:latest AS builder
+
+# # Set the current working directory inside the container
+# WORKDIR /app
+
+# # Copy go mod and sum files
+# COPY go.mod go.sum ./
+
+# RUN go mod download && go mod verify
+
+# # Copy the source code into the container
+# COPY . .
+
+# # Builder stage doesn't build the binary (handled by Makefile)
+
+# # Minimal runtime image
+# FROM alpine:latest
+
+# # Install necessary dependencies (e.g., database driver for your chosen language)
+# # (Optional, if your service requires them)
+# RUN apk add --no-cache <database_driver_package> && rm -rf /var/cache/apk/*
+
+# # Copy the built binary from the host (assuming Makefile builds it)
+# COPY ./bin/auth-service /app/auth-service  # Replace ./bin/auth-service with your actual output directory
+
+# # Expose port for your service (replace with your service's port)
+# EXPOSE 8080
+
+# # Command to run your service
+# CMD ["/app/auth-service"]

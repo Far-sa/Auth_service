@@ -79,7 +79,7 @@ services:
       retries: 5
     volumes:
       - ./data/authDB/postgres_data:/var/lib/postgresql/data
-      - ./authService/scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+      # - ./authService/scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
       # - ./.env:/docker-entrypoint-initdb.d/.env
     networks:
       - auth-network
@@ -105,7 +105,7 @@ services:
       - authz-network
     volumes:
       - ./data/authzDB/postgres_data:/var/lib/postgresql/data
-      - ./authorizeSvc/scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+    #   - ./authorizeSvc/scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
       # - ./.env:/docker-entrypoint-initdb.d/.env
 
   rabbitmq:
