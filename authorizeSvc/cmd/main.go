@@ -10,6 +10,8 @@ import (
 	"authorization-service/internal/interfaces"
 	"authorization-service/internal/service"
 	"authorization-service/pb"
+	"path"
+	standard_runtime "runtime"
 
 	"context"
 	"log"
@@ -50,19 +52,23 @@ func runHTTPGateway(ctx context.Context, grpcEndpoint string) error {
 }
 
 func main() {
+
+	//TODO add config to load them from environment variable
 	lis, err := net.Listen("tcp", ":50051")
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
-	dsn := "postgres://root:password@localhost:5432/authz_db?sslmode=disable"
+	dsn := "postgres://postgres:password@localhost:5432/authz_db?sslmode=disable"
 	db, err := database.NewSQLDB(dsn)
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 
+	_, filename, _, _ := standard_runtime.Caller(0)
+	dir := path.Join(path.Dir(filename), "../infrastructure/database/migrations")
 	// Create a new migrator instance.
-	migrator, err := migrator.NewMigrator(db.Conn(), "../infrastructure/database/migrations") // Pass db instead of db.DB
+	migrator, err := migrator.NewMigrator(db.Conn(), dir)
 	if err != nil {
 		log.Fatalf("Failed to create migrator: %v", err)
 	}

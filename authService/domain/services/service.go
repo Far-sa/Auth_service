@@ -7,6 +7,8 @@ import (
 	"authentication-service/utils"
 	"context"
 	"errors"
+	"fmt"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -55,11 +57,24 @@ func (s *AuthService) Login(ctx context.Context, loginRequest param.LoginRequest
 		return nil, err
 	}
 
-	// Set the tokens to the user entity or a custom auth response if required
-	user.AccessToken = accessToken
-	user.RefreshToken = refreshToken
-
+	// Convert tokens to entities.Token type
+	tokens := s.convertTokens(user.ID, accessToken, refreshToken)
+	fmt.Println(tokens)
 	return user, nil
+}
+
+func (s *AuthService) convertTokens(userID int, tokenStrings ...string) []entities.Token {
+	var tokens []entities.Token
+	for _, tokenString := range tokenStrings {
+		token := entities.Token{
+			UserID:    userID,
+			Token:     tokenString,
+			CreatedAt: time.Now(),
+			ExpiresAt: time.Now().Add(24 * time.Hour), // Example expiration time
+		}
+		tokens = append(tokens, token)
+	}
+	return tokens
 }
 
 func (s *AuthService) Register(ctx context.Context, req param.RegisterRequest) error {
@@ -72,7 +87,7 @@ func (s *AuthService) Register(ctx context.Context, req param.RegisterRequest) e
 	// Create a new user entity
 	user := &entities.User{
 		Username:     req.Username,
-		PasswordHash: hashedPassword,
+		PasswordHash: string(hashedPassword),
 		// Populate other fields as necessary
 	}
 

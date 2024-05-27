@@ -1,12 +1,20 @@
 package entities
 
-// User represents a user entity
+import "time"
+
 type User struct {
-	ID       string `json:"id"`
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	// ... other user fields
-	PasswordHash []byte `json:"-"`                       // Password hash (optional)
-	AccessToken  string `json:"access_token,omitempty"`  // Access token for the user (optional)
-	RefreshToken string `json:"refresh_token,omitempty"` // Refresh token for the user (optional)
+	ID           int       `json:"id" gorm:"primaryKey"`
+	Username     string    `json:"username" gorm:"unique;not null"`
+	Email        string    `json:"email" gorm:"unique;not null"`
+	PasswordHash string    `json:"password_hash" gorm:"not null"`
+	CreatedAt    time.Time `json:"created_at" gorm:"autoCreateTime"`
+	UpdatedAt    time.Time `json:"updated_at" gorm:"autoUpdateTime"`
+	Tokens       []Token   `json:"tokens" gorm:"foreignKey:UserID"`
+}
+type Token struct {
+	ID        int       `json:"id" gorm:"primaryKey"`
+	UserID    int       `json:"user_id" gorm:"not null"`
+	Token     string    `json:"token" gorm:"not null"`
+	CreatedAt time.Time `json:"created_at" gorm:"autoCreateTime"`
+	ExpiresAt time.Time `json:"expires_at" gorm:"not null"`
 }

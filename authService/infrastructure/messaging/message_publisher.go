@@ -40,7 +40,7 @@ func NewRabbitMQPublisher(connStr string) (*RabbitMQPublisher, error) {
 	return &RabbitMQPublisher{conn: conn, ch: ch}, nil
 }
 
-func (p *RabbitMQPublisher) PublishUserAuthenticated(userID string) error {
+func (p *RabbitMQPublisher) PublishUserAuthenticated(userID int) error {
 	body := fmt.Sprintf("UserAuthenticated: %s", userID)
 	err := p.ch.Publish(
 		"auth_exchange",      // exchange

@@ -3,6 +3,7 @@ package utils
 import (
 	"errors"
 	"os"
+	"strconv"
 	"time"
 
 	//jwt "github.com/dgrijalva/jwt-go"
@@ -19,7 +20,7 @@ type MyClaims struct {
 	jwt.StandardClaims
 }
 
-func GenerateAccessToken(userID string) (string, error) {
+func GenerateAccessToken(userID int) (string, error) {
 	// Retrieve the secret key from an environment variable
 	secretKey := os.Getenv(SecretKeyEnvVar)
 	if secretKey == "" {
@@ -29,7 +30,7 @@ func GenerateAccessToken(userID string) (string, error) {
 	// Set token claims, such as expiration time
 	expirationTime := time.Now().Add(24 * time.Hour)
 	myClaims := MyClaims{
-		UserID: userID,
+		UserID: strconv.Itoa(userID),
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},
@@ -39,7 +40,7 @@ func GenerateAccessToken(userID string) (string, error) {
 	return token.SignedString([]byte(secretKey))
 }
 
-func GenerateRefreshToken(userID string) (string, error) {
+func GenerateRefreshToken(userID int) (string, error) {
 	// Retrieve the secret key from an environment variable
 	secretKey := os.Getenv(SecretKeyEnvVar)
 	if secretKey == "" {
@@ -49,7 +50,7 @@ func GenerateRefreshToken(userID string) (string, error) {
 	// Set token claims, with a longer expiration time for refresh tokens
 	expirationTime := time.Now().Add(7 * 24 * time.Hour) // 7 days validity
 	myClaims := MyClaims{
-		UserID: userID,
+		UserID: strconv.Itoa(userID),
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},

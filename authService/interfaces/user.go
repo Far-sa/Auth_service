@@ -19,5 +19,5 @@ type UserRepository interface {
 }
 
 type MessagePublisher interface {
-	PublishUserAuthenticated(userID string) error
+	PublishUserAuthenticated(userID int) error
 }
