@@ -14,3 +14,21 @@ type RegisterRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
+
+// !
+type UserResponse struct {
+	ID           int    `json:"id"`
+	PasswordHash string `json:"password_hash"`
+	Error        string `json:"error,omitempty"`
+}
+
+type RegisterUserRequest struct {
+	Username     string `json:"username"`
+	Email        string `json:"email"`
+	PasswordHash string `json:"password_hash"`
+}
+
+type RegisterUserResponse struct {
+	Success bool   `json:"success"`
+	Error   string `json:"error,omitempty"`
+}

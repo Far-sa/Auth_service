@@ -4,6 +4,8 @@ import (
 	"authentication-service/domain/entities"
 	"authentication-service/domain/param"
 	"context"
+
+	"github.com/streadway/amqp"
 )
 
 type AuthenticationService interface {
@@ -19,5 +21,7 @@ type UserRepository interface {
 }
 
 type MessagePublisher interface {
-	PublishUserAuthenticated(userID int) error
+	//PublishUserAuthenticated(userID int) error
+	Publish(message []byte, queueName string) error
+	Consume(queue string) (<-chan amqp.Delivery, error)
 }
