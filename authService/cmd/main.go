@@ -49,8 +49,8 @@ func main() {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
-	dbUrl := "host=localhost user=postgres password=postgres dbname=user_service port=5432 sslmode=disable TimeZone=Asia/Shanghai"
-	db, err := database.NewSQLDB(dbUrl)
+	dsn := "postgres://root:password@localhost:5432/authz_db?sslmode=disable"
+	db, err := database.NewSQLDB(dsn)
 	if err != nil {
 		log.Fatalf("Failed to create database: %v", err)
 	}

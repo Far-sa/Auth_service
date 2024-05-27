@@ -55,7 +55,7 @@ func main() {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
-	dsn := "postgres://root:password@postgres-authz:5432/authz_db?sslmode=disable"
+	dsn := "postgres://root:password@localhost:5432/authz_db?sslmode=disable"
 	db, err := database.NewSQLDB(dsn)
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)

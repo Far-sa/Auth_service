@@ -6,6 +6,9 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"path"
+	standard_runtime "runtime"
+
 	"user-service/delivery/grpc/handler"
 	"user-service/infrastructure/database"
 	"user-service/infrastructure/messaging"
@@ -50,14 +53,18 @@ func main() {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
-	dsn := "host=localhost user=postgres password=postgres dbname=user_service port=5432 sslmode=disable TimeZone=Asia/Shanghai"
+	dsn := "postgres://postgres:password@localhost:5432/user_db?sslmode=disable"
 	db, err := database.NewSQLDB(dsn)
 	if err != nil {
 		log.Fatalf("Failed to create database: %v", err)
 	}
 
+	//! runtime.Caller(0)` returns the file name and line number of the caller's caller.
+	//! `path.Dir(filename)` returns the directory of the `main.go` file. `path.Join` constructs the path to the migrations directory.
+	_, filename, _, _ := standard_runtime.Caller(0)
+	dir := path.Join(path.Dir(filename), "../infrastructure/database/migrations")
 	// Create a new migrator instance.
-	migrator, err := migrator.NewMigrator(db.Conn(), "../infrastructure/database/migrations") // Pass db instead of db.DB
+	migrator, err := migrator.NewMigrator(db.Conn(), dir)
 	if err != nil {
 		log.Fatalf("Failed to create migrator: %v", err)
 	}

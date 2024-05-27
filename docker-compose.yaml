@@ -1,65 +1,86 @@
 version: "3.8"
 
-networks:
-  auth-network:
-    driver: bridge
-  authz-network:
-    driver: bridge
-  rabbitmq-network:
-    driver: bridge
+# networks:
+#   auth-network:
+#     driver: bridge
+#   authz-network:
+#     driver: bridge
+#   rabbitmq-network:
+#     driver: bridge
 
-x-common-env: &common-env
-  RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq:5672/
+# x-common-env: &common-env
+#   RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq:5672/
 
 services:
-  auth-service:
-    build:
-      context: ./authService
-      dockerfile: Dockerfile
-    image: auth-svc-5.0.0
-    #image: ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
-    container_name: auth-mofid
-    ports:
-      - "50051:50051"
-    environment:
-      <<: *common-env
-      DATABASE_URL: postgres://${AUTH_SERVICE_DB_USER}:${AUTH_SERVICE_DB_PASSWORD}@postgres-auth:5432/${AUTH_SERVICE_DB_NAME}
-      #RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq:5672/
-    depends_on:
-      - postgres-auth
-      - rabbitmq
-    restart: always
-    networks:
-      - auth-network
-      - rabbitmq-network
+#   auth-service:
+#     build:
+#       context: ./authService
+#       dockerfile: Dockerfile
+#     image: auth-svc-5.0.0
+#     #image: ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
+#     container_name: auth-mofid
+#     ports:
+#       - "50051:50051"
+#     environment:
+#       <<: *common-env
+#       DATABASE_URL: postgres://${AUTH_SERVICE_DB_USER}:${AUTH_SERVICE_DB_PASSWORD}@postgres-auth:5432/${AUTH_SERVICE_DB_NAME}
+#       #RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq:5672/
+#     depends_on:
+#       - postgres-auth
+#       - rabbitmq
+#     restart: always
+#     networks:
+#       - auth-network
+#       - rabbitmq-network
     # volumes:
     #   - ./.env:/app/.env
     #   - ./authService/scripts:/docker-entrypoint-initdb.d  # Mount scripts folder for auth-service
 
 
-  postgres-auth:
-    image: postgres:13
-    container_name: auth-db
+  # postgres-auth:
+  #   image: postgres:13
+  #   container_name: auth-db
+  #   environment:
+  #     POSTGRES_USER: ${POSTGRES_USER}
+  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  #     # POSTGRES_DB: ${AUTH_SERVICE_DB_NAME}
+  #     # POSTGRES_DB: ${POSTGRES_DB}
+  #     # NEW_ROLE: ${AUTH_SERVICE_DB_USER}
+  #     # NEW_ROLE_PASSWORD: ${AUTH_SERVICE_DB_PASSWORD}
+  #   ports:
+  #     - "5433:5432" #? Map to a different port on the host
+  #   healthcheck:
+  #     test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #   volumes:
+  #     - ./data/authDB/postgres_data:/var/lib/postgresql/data
+  #     # - ./authService/scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+  #     # - ./.env:/docker-entrypoint-initdb.d/.env
+  #   networks:
+  #     - auth-network
+
+  postgres:
+    image: postgres:12-alpine
+    container_name: postgres12
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
       # POSTGRES_DB: ${AUTH_SERVICE_DB_NAME}
-      # POSTGRES_DB: ${POSTGRES_DB}
+      # POSTGRES_DB: user_db
       # NEW_ROLE: ${AUTH_SERVICE_DB_USER}
       # NEW_ROLE_PASSWORD: ${AUTH_SERVICE_DB_PASSWORD}
     ports:
-      - "5433:5432" #? Map to a different port on the host
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - "5432:5432" #? Map to a different port on the host
+    # healthcheck:
+    #   test: ["CMD", "pg_isready", "-U", "postgres"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 5
     volumes:
-      - ./data/authDB/postgres_data:/var/lib/postgresql/data
-      # - ./authService/scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
-      # - ./.env:/docker-entrypoint-initdb.d/.env
-    networks:
-      - auth-network
+      - ./data/postgres12/postgres_data:/var/lib/postgresql/data
+      - ./userService/scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -77,8 +98,8 @@ services:
     # volumes:
     #   - ./config/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
     #   - ./config/definitions.json:/etc/rabbitmq/definitions.json
-    networks:
-      - rabbitmq-network
+    # networks:
+    #   - rabbitmq-network
 
   # authz-service:
   #   build:

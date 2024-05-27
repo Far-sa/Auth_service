@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"strings"
 )
 
 type SqlDB struct {
@@ -17,21 +16,12 @@ func (d *SqlDB) Conn() *sql.DB {
 	return d.db
 }
 
-func NewSQLDB(pathUrl string) (*SqlDB, error) {
+func NewSQLDB(dsn string) (*SqlDB, error) {
 
 	//dsn := "postgres://root:password@postgres-auth:5432/auth-db?sslmode=disable" // Connect to the database directly
-	db, err := sql.Open("postgres", pathUrl)
+	db, err := sql.Open("postgres", dsn)
 	if err != nil {
 		panic(fmt.Errorf("can not open postgres database: %v", err))
-	}
-
-	// Create the database if it doesn't exist.
-	_, err = db.Exec("CREATE DATABASE IF NOT EXISTS auth-db")
-	if err != nil {
-		// If the error is due to the database already existing, ignore it.
-		if !strings.Contains(err.Error(), "already exists") {
-			return nil, fmt.Errorf("failed to create database: %w", err)
-		}
 	}
 
 	// Set connection pool parameters (optional)
