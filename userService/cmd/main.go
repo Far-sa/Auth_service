@@ -1,46 +1,76 @@
 package main
 
 import (
-	"database/sql"
+	"context"
 	"log"
 	"net"
-	"os"
-	"user-service/di"
-	"user-service/internal/infrastructure/database"
-	pb "user-service/pb"
+	"net/http"
+	"user-service/delivery/grpc/handler"
+	"user-service/infrastructure/database"
+	"user-service/infrastructure/messaging"
+	"user-service/infrastructure/repository"
+	"user-service/internal/interfaces"
+	"user-service/internal/service"
+	"user-service/pb"
 
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	_ "github.com/lib/pq"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
-func main() {
-	db, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
-
-	err = database.Migrate(db)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	rabbitMQUrl := os.Getenv("RABBITMQ_URL")
-	userHandler, err := di.InitializeUserHandler(db, rabbitMQUrl)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	lis, err := net.Listen("tcp", ":50051")
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
-	}
-
+func runGRPCServer(lis net.Listener, userService interfaces.UserService) {
 	grpcServer := grpc.NewServer()
+	userHandler := handler.NewUserHandler(userService)
 	pb.RegisterUserServiceServer(grpcServer, userHandler)
+	reflection.Register(grpcServer)
 
-	log.Println("Starting User Service on port :50051...")
+	log.Printf("Serving gRPC on %s", lis.Addr().String())
 	if err := grpcServer.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
+		log.Fatalf("Failed to serve gRPC server: %v", err)
+	}
+}
+
+func runHTTPGateway(ctx context.Context, grpcEndpoint string) error {
+	mux := runtime.NewServeMux()
+	opts := []grpc.DialOption{grpc.WithInsecure()}
+	if err := pb.RegisterUserServiceHandlerFromEndpoint(ctx, mux, grpcEndpoint, opts); err != nil {
+		return err
+	}
+
+	log.Println("Serving gRPC-Gateway on http://localhost:8080")
+	return http.ListenAndServe(":8080", mux)
+}
+
+func main() {
+	lis, err := net.Listen("tcp", ":50052")
+
+	if err != nil {
+		log.Fatalf("Failed to listen: %v", err)
+	}
+
+	dsn := "host=localhost user=postgres password=postgres dbname=user_service port=5432 sslmode=disable TimeZone=Asia/Shanghai"
+	db, _ := database.NewSQLDB(dsn)
+
+	// Create a new migrator instance.
+	// migrator, err := migrator.NewMigrator(db.DB(), "../infrastructure/database/migrations") // Pass db instead of db.DB
+	// if err != nil {
+	// 	log.Fatalf("Failed to create migrator: %v", err)
+	// }
+
+	// Apply all up migrations.
+	// if err := migrator.Up(); err != nil {
+	// 	log.Fatalf("Failed to migrate up: %v", err)
+	// }
+	// Initialize repository, service, and handler
+	userRepo := repository.New(db)
+	amqpUrl := "amqp://guest:guest@localhost:5672/"
+	userEvent, _ := messaging.NewRabbitMQ(amqpUrl)
+	userSvc := service.NewUserService(userRepo, userEvent)
+
+	go runGRPCServer(lis, userSvc)
+	ctx := context.Background()
+	if err := runHTTPGateway(ctx, lis.Addr().String()); err != nil {
+		log.Fatalf("Failed to run gRPC-Gateway: %v", err)
 	}
 }

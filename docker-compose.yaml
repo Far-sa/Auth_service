@@ -61,19 +61,6 @@ services:
     networks:
       - auth-network
 
-
-  db-init:
-    build:
-      context: ./authService
-      dockerfile: Dockerfile.db-init
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${AUTH_SERVICE_DB_NAME}
-    depends_on:
-      postgres-auth:
-        condition: service_healthy
-
   rabbitmq:
     image: rabbitmq:3-management
     environment:
