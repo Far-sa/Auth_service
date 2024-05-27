@@ -1,6 +1,6 @@
 package repository
 
-import "user-service/infrastructure/database"
+import "authorization-service/infrastructure/database"
 
 type DB struct {
 	conn *database.SqlDB

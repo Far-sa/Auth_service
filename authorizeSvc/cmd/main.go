@@ -3,8 +3,10 @@ package main
 import (
 	"authorization-service/delivery/gprc/handler"
 	"authorization-service/infrastructure/database"
+	"authorization-service/infrastructure/database/migrator"
 	"authorization-service/infrastructure/messaging"
 	"authorization-service/infrastructure/messaging/rabbitmq"
+	"authorization-service/infrastructure/repository"
 	"authorization-service/internal/interfaces"
 	"authorization-service/internal/service"
 	"authorization-service/pb"
@@ -21,10 +23,6 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
-)
-
-const (
-	defaultPort = "50052"
 )
 
 func runGRPCServer(lis net.Listener, authzService interfaces.AuthorizationService) error {
@@ -57,15 +55,25 @@ func main() {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
-	dsn := "postgres://authz_user:authz_password@postgres-authz:5432/authz_db?sslmode=disable"
+	dsn := "postgres://root:password@postgres-authz:5432/authz_db?sslmode=disable"
 	db, err := database.NewSQLDB(dsn)
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
-	// defer db.Close()
+
+	// Create a new migrator instance.
+	migrator, err := migrator.NewMigrator(db.Conn(), "../infrastructure/database/migrations") // Pass db instead of db.DB
+	if err != nil {
+		log.Fatalf("Failed to create migrator: %v", err)
+	}
+
+	// Apply all up migrations.
+	if err := migrator.Up(); err != nil {
+		log.Fatalf("Failed to migrate up: %v", err)
+	}
 
 	// Initialize repository, service, and handler
-	userRepo := database.NewPostgresRoleRepository(db)
+	userRepo := repository.NewRepository(db)
 
 	amqpUrl := "amqp://guest:guest@rabbitmq:5672/"
 	rabbitAdapter, err := rabbitmq.NewRabbitMQAdapter(amqpUrl)

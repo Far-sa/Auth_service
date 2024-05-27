@@ -9,11 +9,16 @@ import (
 	_ "github.com/lib/pq"
 )
 
-type sqlDB struct {
+type SqlDB struct {
 	db *sql.DB
 }
 
-func NewSQLDB(dataSourceName string) (*sqlDB, error) {
+// Add this method to the sqlDB type.
+func (s *SqlDB) Conn() *sql.DB {
+	return s.db
+}
+
+func NewSQLDB(dataSourceName string) (*SqlDB, error) {
 	db, err := sql.Open("postgres", dataSourceName) // Adjust driver as needed
 	if err != nil {
 		return nil, err
@@ -28,28 +33,7 @@ func NewSQLDB(dataSourceName string) (*sqlDB, error) {
 		return nil, errors.New("failed to ping database: " + err.Error())
 	}
 
-	return &sqlDB{db: db}, nil
-}
-
-func (db *sqlDB) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
-	stmt, err := db.db.PrepareContext(ctx, query)
-	if err != nil {
-		return nil, err
-	}
-	defer stmt.Close() // Close prepared statement after execution
-
-	result, err := stmt.ExecContext(ctx, args...)
-	return result, err
-}
-
-func (db *sqlDB) QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row {
-	stmt, err := db.db.PrepareContext(ctx, query)
-	if err != nil {
-		return nil
-	}
-	defer stmt.Close() // Close prepared statement after execution
-
-	return stmt.QueryRowContext(ctx, args...)
+	return &SqlDB{db: db}, nil
 }
 
 const createTableQueries = `

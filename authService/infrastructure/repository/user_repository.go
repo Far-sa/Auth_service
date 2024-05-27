@@ -1,26 +1,25 @@
-package database
+package repository
 
 import (
 	"authentication-service/domain/entities"
-	"authentication-service/interfaces"
 	"context"
 	"database/sql"
 )
 
-type PostgresUserRepository struct {
-	db *SqlDB
-}
+// type PostgresUserRepository struct {
+// 	db *SqlDB
+// }
 
-func NewPostgresUserRepository(db *SqlDB) interfaces.UserRepository {
-	return &PostgresUserRepository{db: db}
-}
+// func NewPostgresUserRepository(db *SqlDB) interfaces.UserRepository {
+// 	return &PostgresUserRepository{db: db}
+// }
 
-func (r *PostgresUserRepository) Save(ctx context.Context, user *entities.User) error {
+func (r *DB) Save(ctx context.Context, user *entities.User) error {
 	// Prepared statement for saving a user
 	query := `INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3)`
 
 	// Execute the prepared statement with user data
-	_, err := r.db.ExecContext(ctx, query, user.Username, user.Email, user.PasswordHash)
+	_, err := r.conn.Conn().ExecContext(ctx, query, user.Username, user.Email, user.PasswordHash)
 	if err != nil {
 		return err
 	}
@@ -28,12 +27,12 @@ func (r *PostgresUserRepository) Save(ctx context.Context, user *entities.User) 
 	return nil
 }
 
-func (r *PostgresUserRepository) FindByUsernameOrEmail(ctx context.Context, usernameOrEmail string) (*entities.User, error) {
+func (r *DB) FindByUsernameOrEmail(ctx context.Context, usernameOrEmail string) (*entities.User, error) {
 	// Prepared statement for finding a user by username or email
 	query := `SELECT * FROM users WHERE username = $1 OR email = $2`
 
 	// Execute the prepared statement with username/email
-	row := r.db.QueryRowContext(ctx, query, usernameOrEmail, usernameOrEmail)
+	row := r.conn.Conn().QueryRowContext(ctx, query, usernameOrEmail, usernameOrEmail)
 
 	// Scan the row into a user object
 	var u entities.User

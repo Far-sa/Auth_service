@@ -1,6 +1,7 @@
 package main
 
 import (
+	"authentication-service/infrastructure/database/migrator"
 	"context"
 	"log"
 	"net"
@@ -50,20 +51,23 @@ func main() {
 	}
 
 	dsn := "host=localhost user=postgres password=postgres dbname=user_service port=5432 sslmode=disable TimeZone=Asia/Shanghai"
-	db, _ := database.NewSQLDB(dsn)
+	db, err := database.NewSQLDB(dsn)
+	if err != nil {
+		log.Fatalf("Failed to create database: %v", err)
+	}
 
 	// Create a new migrator instance.
-	// migrator, err := migrator.NewMigrator(db.DB(), "../infrastructure/database/migrations") // Pass db instead of db.DB
-	// if err != nil {
-	// 	log.Fatalf("Failed to create migrator: %v", err)
-	// }
+	migrator, err := migrator.NewMigrator(db.Conn(), "../infrastructure/database/migrations") // Pass db instead of db.DB
+	if err != nil {
+		log.Fatalf("Failed to create migrator: %v", err)
+	}
 
 	// Apply all up migrations.
-	// if err := migrator.Up(); err != nil {
-	// 	log.Fatalf("Failed to migrate up: %v", err)
-	// }
+	if err := migrator.Up(); err != nil {
+		log.Fatalf("Failed to migrate up: %v", err)
+	}
 	// Initialize repository, service, and handler
-	userRepo := repository.New(db)
+	userRepo := repository.NewRepository(db)
 	amqpUrl := "amqp://guest:guest@localhost:5672/"
 	userEvent, _ := messaging.NewRabbitMQ(amqpUrl)
 	userSvc := service.NewUserService(userRepo, userEvent)

@@ -6,6 +6,7 @@ import (
 	"authentication-service/infrastructure/database"
 	"authentication-service/infrastructure/database/migrator"
 	"authentication-service/infrastructure/messaging"
+	"authentication-service/infrastructure/repository"
 	"authentication-service/interfaces"
 	"authentication-service/pb"
 	"context"
@@ -48,10 +49,14 @@ func main() {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
-	db, _ := database.NewSQLDB()
+	dbUrl := "host=localhost user=postgres password=postgres dbname=user_service port=5432 sslmode=disable TimeZone=Asia/Shanghai"
+	db, err := database.NewSQLDB(dbUrl)
+	if err != nil {
+		log.Fatalf("Failed to create database: %v", err)
+	}
 
 	// Create a new migrator instance.
-	migrator, err := migrator.NewMigrator(db.DB(), "../infrastructure/database/migrations") // Pass db instead of db.DB
+	migrator, err := migrator.NewMigrator(db.Conn(), "../infrastructure/database/migrations") // Pass db instead of db.DB
 	if err != nil {
 		log.Fatalf("Failed to create migrator: %v", err)
 	}
@@ -61,7 +66,7 @@ func main() {
 		log.Fatalf("Failed to migrate up: %v", err)
 	}
 	// Initialize repository, service, and handler
-	userRepo := database.NewPostgresUserRepository(db)
+	userRepo := repository.NewRepository(db)
 
 	amqpUrl := "amqp://guest:guest@rabbitmq:5672/"
 	publisher, _ := messaging.NewRabbitMQPublisher(amqpUrl)
