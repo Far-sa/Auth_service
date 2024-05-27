@@ -20,7 +20,7 @@ type MyClaims struct {
 	jwt.StandardClaims
 }
 
-func GenerateAccessToken(userID int) (string, error) {
+func GenerateAccessToken(userID string) (string, error) {
 	// Retrieve the secret key from an environment variable
 	secretKey := os.Getenv(SecretKeyEnvVar)
 	if secretKey == "" {
@@ -30,7 +30,7 @@ func GenerateAccessToken(userID int) (string, error) {
 	// Set token claims, such as expiration time
 	expirationTime := time.Now().Add(24 * time.Hour)
 	myClaims := MyClaims{
-		UserID: strconv.Itoa(userID),
+		UserID: userID,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},

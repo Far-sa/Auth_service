@@ -1,29 +1,23 @@
-CREATE TABLE Roles (
+CREATE TABLE roles (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) UNIQUE NOT NULL,
     description TEXT
 );
 
-CREATE TABLE Permissions (
+CREATE TABLE permissions (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) UNIQUE NOT NULL,
     description TEXT
 );
 
---* UserRoles (Many-to-Many relationship between Users and Roles)
-CREATE TABLE UserRoles (
-    user_id INT,
-    role_id INT,
-    PRIMARY KEY (user_id, role_id),
-    FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE,
-    FOREIGN KEY (role_id) REFERENCES Roles(id) ON DELETE CASCADE
+CREATE TABLE user_roles (
+    user_id INT NOT NULL, -- This is a reference to a user ID in the User Service
+    role_id INT NOT NULL, -- This is a reference to a role ID in the Authorize Service
+    PRIMARY KEY (user_id, role_id)
 );
 
---* RolePermissions (Many-to-Many relationship between Roles and Permissions)
-CREATE TABLE RolePermissions (
-    role_id INT,
-    permission_id INT,
-    PRIMARY KEY (role_id, permission_id),
-    FOREIGN KEY (role_id) REFERENCES Roles(id) ON DELETE CASCADE,
-    FOREIGN KEY (permission_id) REFERENCES Permissions(id) ON DELETE CASCADE
+CREATE TABLE role_permissions (
+    role_id INT NOT NULL, -- This is a reference to a role ID in the Authorize Service
+    permission_id INT NOT NULL, -- This is a reference to a permission ID in the Authorize Service
+    PRIMARY KEY (role_id, permission_id)
 );

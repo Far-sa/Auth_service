@@ -32,29 +32,30 @@ func NewAuthService(userRepository interfaces.UserRepository, messagePublisher i
 	}
 }
 
-func (s *AuthService) Login(ctx context.Context, loginRequest param.LoginRequest) (*entities.User, error) {
+func (s *AuthService) Login(ctx context.Context, loginRequest param.LoginRequest) (param.LoginResponse, error) {
 	// Find the user by username or email based on the login request
 	user, err := s.userRepository.FindByUsernameOrEmail(ctx, loginRequest.UsernameOrEmail)
 	if err != nil {
-		return nil, err
+		return param.LoginResponse{}, err
 	}
 
+	//! get user info from user service
 	// Validate the password (compare hashed password with provided password)
 	if !isValidPassword(loginRequest.Password, string(user.PasswordHash)) {
-		return nil, errors.New("Invalid credentials")
+		return param.LoginResponse{}, errors.New("Invalid credentials")
 	}
 
 	//TODO generate tokens- use utils package
 	// Generate tokens using the utils package
 	accessToken, err := utils.GenerateAccessToken(user.ID)
 	if err != nil {
-		return nil, err
+		return param.LoginResponse{}, err
 	}
 
 	// Optionally, generate a refresh token as well
 	refreshToken, err := utils.GenerateRefreshToken(user.ID)
 	if err != nil {
-		return nil, err
+		return param.LoginResponse{}, err
 	}
 
 	// Convert tokens to entities.Token type
