@@ -10,6 +10,12 @@ import (
 	_ "github.com/lib/pq"
 )
 
+// MigrateInterface is an interface that matches the migrate.Migrate methods used.
+type MigrateInterface interface {
+	Up() error
+	Down() error
+}
+
 type Migrator struct {
 	m *migrate.Migrate
 }

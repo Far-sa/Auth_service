@@ -13,9 +13,10 @@ type UserDetail struct {
 }
 
 type User struct {
-	ID           int       `json:"id" gorm:"primaryKey"`
+	ID           string    `json:"id" gorm:"primaryKey"`
 	Username     string    `json:"username" gorm:"unique;not null"`
 	Email        string    `json:"email" gorm:"unique;not null"`
+	PhoneNumber  string    `json:"phone_number"`
 	PasswordHash string    `json:"password_hash" gorm:"not null"`
 	CreatedAt    time.Time `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt    time.Time `json:"updated_at" gorm:"autoUpdateTime"`

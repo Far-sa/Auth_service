@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"log"
-	"user-service/internal/entity"
 	"user-service/internal/interfaces"
 	"user-service/internal/param"
 )
@@ -56,8 +55,13 @@ func (s *UserService) ListenForUserRequests() {
 	}()
 }
 
-func (s *UserService) GetUserByUsernameOrEmail(ctx context.Context, usernameOrEmail string) (*entity.User, error) {
-	return s.userRepo.FindByUsernameOrEmail(ctx, usernameOrEmail)
+func (s *UserService) GetUserByUsernameOrEmail(ctx context.Context, usernameOrEmail string) (param.UserInfo, error) {
+	user, err := s.userRepo.FindByUsernameOrEmail(ctx, usernameOrEmail)
+	if err != nil {
+		return param.UserInfo{}, nil
+	}
+
+	return param.UserInfo{ID: user.ID, Email: user.Email}, nil
 }
 
 func (s *UserService) GetUser(userID string) (param.UserInfo, error) {
@@ -66,9 +70,9 @@ func (s *UserService) GetUser(userID string) (param.UserInfo, error) {
 		return param.UserInfo{}, err
 	}
 	userInfo := param.UserInfo{
-		ID:          userDetail.UserID,
+		ID:          userDetail.ID,
 		PhoneNumber: userDetail.PhoneNumber,
-		Name:        userDetail.FirstName,
+		UserName:    userDetail.Username,
 		// Set other fields as needed
 	}
 	return userInfo, nil
