@@ -3,16 +3,17 @@ package service
 import (
 	"context"
 	"log"
+	"user-service/internal/entity"
 	"user-service/internal/interfaces"
 	"user-service/internal/param"
 )
 
 type UserService struct {
 	userRepo  interfaces.UserRepository
-	messaging interfaces.Messaging
+	messaging interfaces.UserEvents
 }
 
-func NewUserService(userRepo interfaces.UserRepository, messaging interfaces.Messaging) *UserService {
+func NewUserService(userRepo interfaces.UserRepository, messaging interfaces.UserEvents) *UserService {
 	return &UserService{userRepo: userRepo, messaging: messaging}
 }
 
@@ -20,7 +21,7 @@ func NewUserService(userRepo interfaces.UserRepository, messaging interfaces.Mes
 //! in its user_profiles table. consume from "user_registered",   var event models.UserRegisteredEvent
 
 func (s *UserService) ListenForUserRequests() {
-	msgs, err := s.messaging.Consume("user_queue")
+	msgs, err := s.messaging.Consume("user_queue", "", false)
 	if err != nil {
 		log.Fatalf("Failed to start consuming messages: %v", err)
 	}
@@ -28,25 +29,23 @@ func (s *UserService) ListenForUserRequests() {
 
 }
 
-func (s *UserService) GetUserByUsernameOrEmail(ctx context.Context, usernameOrEmail string) (param.UserInfo, error) {
+func (s *UserService) GetUserByUsernameOrEmail(ctx context.Context, usernameOrEmail string) (param.UserProfileResponse, error) {
 	user, err := s.userRepo.FindByUsernameOrEmail(ctx, usernameOrEmail)
 	if err != nil {
-		return param.UserInfo{}, nil
+		return param.UserProfileResponse{}, nil
 	}
 
-	return param.UserInfo{ID: user.ID, Email: user.Email}, nil
+	return param.UserProfileResponse{UserProfile: entity.UserProfile{Email: user.Email}}, nil
 }
 
-func (s *UserService) GetUser(userID string) (param.UserInfo, error) {
-	userDetail, err := s.userRepo.GetUser(userID)
+func (s *UserService) GetUser(userID string) (param.UserProfileResponse, error) {
+	userDetail, err := s.userRepo.GetUserByID(userID)
 	if err != nil {
-		return param.UserInfo{}, err
+		return param.UserProfileResponse{}, err
 	}
-	userInfo := param.UserInfo{
-		ID:          userDetail.ID,
-		PhoneNumber: userDetail.PhoneNumber,
-		UserName:    userDetail.Username,
-		// Set other fields as needed
+	userInfo := param.UserProfileResponse{
+		UserProfile: entity.UserProfile{ID: userDetail.ID, Email: userDetail.Email, Username: userDetail.Username,
+			CreatedAt: userDetail.CreatedAt},
 	}
 	return userInfo, nil
 }

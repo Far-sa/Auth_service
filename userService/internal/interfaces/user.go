@@ -5,24 +5,21 @@ import (
 	"user-service/internal/entity"
 	"user-service/internal/param"
 
-	"github.com/streadway/amqp"
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 type UserService interface {
-	// CreateUser(user entity.UserDetail) error
-	GetUser(userID string) (param.UserInfo, error)
+	GetUser(userID string) (param.UserProfileResponse, error)
 }
 
 type UserRepository interface {
-	// CreateUser(user entity.UserDetail) error
-	GetUser(userID string) (entity.User, error)
-	CreateUser(ctx context.Context, user *entity.User) error
-
-	FindByUsernameOrEmail(ctx context.Context, usernameOrEmail string) (*entity.User, error)
+	GetUserByID(userID string) (entity.UserProfile, error)
+	FindByUsernameOrEmail(ctx context.Context, usernameOrEmail string) (*entity.UserProfile, error)
 }
-type Messaging interface {
-	Publish(message []byte, queueName string) error
-	Consume(queue string) (<-chan amqp.Delivery, error)
-
-	//Subscribe(queueName string, handler func(message []byte)) error
+type UserEvents interface {
+	DeclareExchange(name, kind string) error
+	CreateQueue(queueName string, durable, autodelete bool) (amqp.Queue, error)
+	CreateBinding(queueName, routingKey, exchangeName string) error
+	Consume(queueName, consumer string, autoAck bool) (<-chan amqp.Delivery, error)
+	Publish(ctx context.Context, exchange, routingKey string, options amqp.Publishing) error
 }

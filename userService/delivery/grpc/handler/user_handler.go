@@ -2,11 +2,8 @@ package handler
 
 import (
 	"context"
-	"time"
 	"user-service/internal/interfaces"
 	pb "user-service/pb"
-
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type UserHandler struct {
@@ -23,13 +20,8 @@ func (h *UserHandler) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.
 	if err != nil {
 		return nil, err
 	}
-	createdAt, _ := time.Parse(time.RFC3339, user.CreateAt)
-	return &pb.GetUserResponse{
-		UserId:    user.ID,
-		Name:      user.Name,
-		Email:     user.Email,
-		CreatedAt: timestamppb.New(createdAt),
-	}, nil
+	// createdAt, _ := time.Parse(time.RFC3339, user.CreateAt)
+	return &pb.GetUserResponse{Email: user.UserProfile.Email, Name: *user.UserProfile.FullName}, nil
 }
 
 // func (h *UserHandler) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.CreateUserResponse, error) {
