@@ -1,14 +1,18 @@
 package param
 
-import "time"
+import (
+	"authentication-service/domain/entities"
+	"time"
+)
 
 type LoginRequest struct {
 	UsernameOrEmail string `json:"username_or_email"`
 	Password        string `json:"password"`
 }
+
+// LoginResponse represents the response after a successful login
 type LoginResponse struct {
-	//UserID int      `json:"user_id"`
-	Tokens []string `json:"tokens"`
+	TokenPair entities.TokenPair `json:"token_pair"`
 }
 
 type RegisterRequest struct {

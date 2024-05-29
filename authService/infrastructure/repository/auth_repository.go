@@ -13,16 +13,18 @@ import (
 // 	return &PostgresUserRepository{db: db}
 // }
 
-func (r *DB) SaveToken(ctx context.Context, token *entities.Token) error {
-	// Prepared statement for saving a user
-	query := `INSERT INTO tokens (username, email, password_hash) VALUES ($1, $2, $3)`
+func (r *DB) SaveToken(ctx context.Context, token *entities.TokenPair) error {
+	query := `INSERT INTO tokens (user_id, access_token, refresh_token) VALUES ($1, $2, $3)`
+	_, err := r.conn.Conn().ExecContext(ctx, query, token.UserID, token.AccessToken, token.RefreshToken)
+	return err
 
-	// Execute the prepared statement with user data
-	_, err := r.conn.Conn().ExecContext(ctx, query, user.Username, user.Email, user.PasswordHash)
-	if err != nil {
-		return err
-	}
+}
 
+func (r *DB) FindByUsernameOrEmail(ctx context.Context, usernameOrEmail string) (*entities.User, error) {
+	return nil, nil
+}
+
+func (r *DB) SaveUser(ctx context.Context) error {
 	return nil
 }
 

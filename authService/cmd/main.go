@@ -73,7 +73,7 @@ func main() {
 	userRepo := repository.NewRepository(db)
 
 	amqpUrl := "amqp://guest:guest@rabbitmq:5672/"
-	publisher, _ := messaging.NewRabbitMQPublisher(amqpUrl)
+	publisher, _ := messaging.NewRabbitMQ(amqpUrl)
 	authService := services.NewAuthService(userRepo, publisher)
 
 	// grpc := delivery.NewGRPCServer(authService)

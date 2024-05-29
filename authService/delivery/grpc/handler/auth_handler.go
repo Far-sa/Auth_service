@@ -4,11 +4,7 @@ import (
 	"authentication-service/domain/param"
 	"authentication-service/interfaces"
 	"authentication-service/pb"
-	"authentication-service/utils"
 	"context"
-
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 // AuthHandler handles gRPC requests for authentication
@@ -25,20 +21,15 @@ func NewAuthHandler(authService interfaces.AuthenticationService) *AuthHandler {
 
 // Login implements the gRPC Login method
 func (h *AuthHandler) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
-	user, err := h.authService.Login(ctx, param.LoginRequest{
+	resp, err := h.authService.Login(ctx, param.LoginRequest{
 		UsernameOrEmail: req.GetUsernameOrEmail(),
 		Password:        req.GetPassword(),
 	})
 	if err != nil {
-		// ... (existing error handling)
+		return nil, err
 	}
 
-	accessToken, err := utils.GenerateAccessToken(user.ID) // Use the token generation utility
-	if err != nil {
-		return nil, status.Error(codes.Internal, "Error generating access token")
-	}
-
-	return &pb.LoginResponse{AccessToken: accessToken}, nil
+	return &pb.LoginResponse{AccessToken: resp.TokenPair.AccessToken.Token}, nil
 }
 
 // Register implements the gRPC Register method

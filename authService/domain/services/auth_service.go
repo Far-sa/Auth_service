@@ -9,9 +9,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"time"
 
+	amqp "github.com/rabbitmq/amqp091-go"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -19,14 +19,14 @@ import (
 
 // AuthService implements the AuthenticationService interface
 type AuthService struct {
-	userRepository   interfaces.UserRepository
-	messagePublisher interfaces.MessagePublisher
+	authRepository   interfaces.AuthRepository
+	messagePublisher interfaces.AuthEvents
 }
 
 // NewAuthService creates a new instance of AuthService
-func NewAuthService(userRepository interfaces.UserRepository, messagePublisher interfaces.MessagePublisher) *AuthService {
+func NewAuthService(authRepository interfaces.AuthRepository, messagePublisher interfaces.AuthEvents) *AuthService {
 	return &AuthService{
-		userRepository:   userRepository,
+		authRepository:   authRepository,
 		messagePublisher: messagePublisher,
 	}
 }
@@ -34,6 +34,7 @@ func NewAuthService(userRepository interfaces.UserRepository, messagePublisher i
 // ! Event Publication: The authentication service publishes a UserRegisteredEvent to RabbitMQ.
 //!     event := models.UserRegisteredEvent / user_registered
 
+// TODO update method to return message
 func (s *AuthService) Register(ctx context.Context, registerRequest param.RegisterRequest) error {
 	// Hash the password
 	passwordHash, err := utils.HashPassword(registerRequest.Password)
@@ -47,35 +48,26 @@ func (s *AuthService) Register(ctx context.Context, registerRequest param.Regist
 		Email:        registerRequest.Email,
 		PasswordHash: passwordHash,
 	}
+
 	body, err := json.Marshal(userRequest)
 	if err != nil {
 		return err
 	}
 
+	//TODO save to database
+	// Save user to the database (pseudo-code, replace with actual DB code)
+	// userID, err := saveUserToDB(user)
+	// if err != nil {
+	//     http.Error(w, "Internal server error", http.StatusInternalServerError)
+	//     return
+	// }
+
+	// user.ID = userID
+
 	// Publish the user data to the User Service
-	err = s.messagePublisher.Publish("auth_exchange", "auth_to_user_key", body)
+	err = s.messagePublisher.Publish(ctx, "auth_exchange", "auth_to_user_key", amqp.Publishing{Body: body})
 	if err != nil {
 		return err
-	}
-
-	// Listen for a response from the User Service
-	msgs, err := s.messagePublisher.Consume("auth_response_queue")
-	if err != nil {
-		return err
-	}
-
-	for d := range msgs {
-		var response param.RegisterUserResponse
-		if err := json.Unmarshal(d.Body, &response); err != nil {
-			log.Printf("Failed to unmarshal user response: %v", err)
-			continue
-		}
-
-		if response.Success {
-			return nil
-		} else {
-			return errors.New(response.Error)
-		}
 	}
 
 	return errors.New("no response from user service")
@@ -83,22 +75,17 @@ func (s *AuthService) Register(ctx context.Context, registerRequest param.Regist
 
 func (s *AuthService) Login(ctx context.Context, loginRequest param.LoginRequest) (param.LoginResponse, error) {
 
-	//* Fetch user data from UserService
-	user, err := s.fetchUserData(ctx, loginRequest.UsernameOrEmail)
+	//* get user data from database and compare passwords
+	//* Find the user by username or email based on the login request
+	user, err := s.authRepository.FindByUsernameOrEmail(ctx, loginRequest.UsernameOrEmail)
 	if err != nil {
-		return nil, err
+		return param.LoginResponse{}, err
 	}
 
 	//* Validate the password (compare hashed password with provided password)
 	if !isValidPassword(loginRequest.Password, string(user.PasswordHash)) {
 		return param.LoginResponse{}, errors.New("Invalid credentials")
 	}
-
-	//* Find the user by username or email based on the login request
-	// user, err := s.userRepository.FindByUsernameOrEmail(ctx, loginRequest.UsernameOrEmail)
-	// if err != nil {
-	// 	return param.LoginResponse{}, err
-	// }
 
 	//* Generate tokens using the utils package
 	accessToken, err := utils.GenerateAccessToken(user.ID)
@@ -112,20 +99,18 @@ func (s *AuthService) Login(ctx context.Context, loginRequest param.LoginRequest
 		return param.LoginResponse{}, err
 	}
 
-	// Convert tokens to entities.Token type
+	//! Convert tokens to entities.Token type
 	tokens := s.convertTokens(user.ID, accessToken, refreshToken)
 	fmt.Println(tokens)
-	return user, nil
+	return param.LoginResponse{TokenPair: entities.TokenPair{AccessToken: accessToken, RefreshToken: refreshToken}}, nil
 }
 
-func (s *AuthService) convertTokens(userID int, tokenStrings ...string) []entities.Token {
-	var tokens []entities.Token
+func (s *AuthService) convertTokens(userID string, tokenStrings ...string) []entities.TokenPair {
+	var tokens []entities.TokenPair
 	for _, tokenString := range tokenStrings {
-		token := entities.Token{
-			UserID:    userID,
-			Token:     tokenString,
-			CreatedAt: time.Now(),
-			ExpiresAt: time.Now().Add(24 * time.Hour), // Example expiration time
+		token := entities.TokenPair{
+			AccessToken:  entities.AccessToken{Token: tokenString, ExpiresAt: time.Now().Add(24 * time.Hour)},
+			RefreshToken: entities.RefreshToken{Token: tokenString, ExpiresAt: time.Now().Add(7 * 24 * time.Hour)},
 		}
 		tokens = append(tokens, token)
 	}
@@ -143,38 +128,32 @@ func generateCorrelationID() string {
 	return "some-unique-correlation-id"
 }
 
-func (s *AuthService) fetchUserData(ctx context.Context, usernameOrEmail string) (param.UserResponse, error) {
-	request := map[string]string{"usernameOrEmail": usernameOrEmail}
-	body, err := json.Marshal(request)
-	if err != nil {
-		return param.UserResponse{}, err
-	}
+// func (s *AuthService) fetchUserData(ctx context.Context, usernameOrEmail string) (param.UserResponse, error) {
+// 	request := map[string]string{"usernameOrEmail": usernameOrEmail}
+// 	body, err := json.Marshal(request)
+// 	if err != nil {
+// 		return param.UserResponse{}, err
+// 	}
 
-	err = s.messagePublisher.Publish("auth_exchange", "auth_to_user_key", body)
-	if err != nil {
-		return param.UserResponse{}, err
-	}
+// 	err = s.messagePublisher.Publish("auth_exchange", "auth_to_user_key", body)
+// 	if err != nil {
+// 		return param.UserResponse{}, err
+// 	}
 
-	// Listen for response from User Service
-	msgs, err := s.messagePublisher.Consume("auth_response_queue")
-	if err != nil {
-		return param.UserResponse{}, err
-	}
+// 	// Listen for response from User Service
+// 	msgs, err := s.messagePublisher.Consume("auth_response_queue")
+// 	if err != nil {
+// 		return param.UserResponse{}, err
+// 	}
 
-	for d := range msgs {
-		var user param.UserResponse
-		if err := json.Unmarshal(d.Body, &user); err != nil {
-			log.Printf("Failed to unmarshal user response: %v", err)
-			continue
-		}
-		return &user, nil
-	}
+// 	for d := range msgs {
+// 		var user param.UserResponse
+// 		if err := json.Unmarshal(d.Body, &user); err != nil {
+// 			log.Printf("Failed to unmarshal user response: %v", err)
+// 			continue
+// 		}
+// 		return &user, nil
+// 	}
 
-	return param.UserResponse{}, errors.New("no response from user service")
-}
-
-//! Login Method:
-//? Fetch user data from the UserService via RabbitMQ.
-//? Validate the password.
-//? Generate tokens.
-//? Return the user data with tokens.
+// 	return param.UserResponse{}, errors.New("no response from user service")
+// }

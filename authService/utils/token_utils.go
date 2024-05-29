@@ -3,11 +3,11 @@ package utils
 import (
 	"errors"
 	"os"
-	"strconv"
 	"time"
 
 	//jwt "github.com/dgrijalva/jwt-go"
 	jwt "github.com/dgrijalva/jwt-go"
+	"golang.org/x/crypto/bcrypt"
 )
 
 const (
@@ -40,7 +40,7 @@ func GenerateAccessToken(userID string) (string, error) {
 	return token.SignedString([]byte(secretKey))
 }
 
-func GenerateRefreshToken(userID int) (string, error) {
+func GenerateRefreshToken(userID string) (string, error) {
 	// Retrieve the secret key from an environment variable
 	secretKey := os.Getenv(SecretKeyEnvVar)
 	if secretKey == "" {
@@ -50,7 +50,7 @@ func GenerateRefreshToken(userID int) (string, error) {
 	// Set token claims, with a longer expiration time for refresh tokens
 	expirationTime := time.Now().Add(7 * 24 * time.Hour) // 7 days validity
 	myClaims := MyClaims{
-		UserID: strconv.Itoa(userID),
+		UserID: userID,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},
@@ -82,4 +82,12 @@ func ValidateAccessToken(tokenString string) (*MyClaims, error) {
 	} else {
 		return nil, errors.New("invalid token")
 	}
+}
+
+func HashPassword(password string) (string, error) {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", err
+	}
+	return string(hashedPassword), nil
 }
