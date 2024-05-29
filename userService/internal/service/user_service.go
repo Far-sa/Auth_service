@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"encoding/json"
 	"log"
 	"user-service/internal/interfaces"
 	"user-service/internal/param"
@@ -17,42 +16,16 @@ func NewUserService(userRepo interfaces.UserRepository, messaging interfaces.Mes
 	return &UserService{userRepo: userRepo, messaging: messaging}
 }
 
+//! Event Consumption in User Service: The user service listens to the UserRegisteredEvent and creates a new entry
+//! in its user_profiles table. consume from "user_registered",   var event models.UserRegisteredEvent
+
 func (s *UserService) ListenForUserRequests() {
 	msgs, err := s.messaging.Consume("user_queue")
 	if err != nil {
 		log.Fatalf("Failed to start consuming messages: %v", err)
 	}
+	_ = msgs
 
-	go func() {
-		for d := range msgs {
-			var req map[string]string
-			if err := json.Unmarshal(d.Body, &req); err != nil {
-				log.Printf("Failed to unmarshal message: %v", err)
-				continue
-			}
-
-			usernameOrEmail, ok := req["usernameOrEmail"]
-			if !ok {
-				log.Printf("Invalid message format: %v", req)
-				continue
-			}
-
-			user, err := s.userRepo.FindByUsernameOrEmail(context.Background(), usernameOrEmail)
-			if err != nil {
-				log.Printf("User not found: %v", usernameOrEmail)
-				continue
-			}
-
-			// Publish the user details back to an auth service queue or reply mechanism
-			response, err := json.Marshal(user)
-			if err != nil {
-				log.Printf("Failed to marshal user response: %v", err)
-				continue
-			}
-
-			s.messaging.Publish("user_exchange", "user_response_key", response)
-		}
-	}()
 }
 
 func (s *UserService) GetUserByUsernameOrEmail(ctx context.Context, usernameOrEmail string) (param.UserInfo, error) {

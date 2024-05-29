@@ -31,6 +31,9 @@ func NewAuthService(userRepository interfaces.UserRepository, messagePublisher i
 	}
 }
 
+// ! Event Publication: The authentication service publishes a UserRegisteredEvent to RabbitMQ.
+//!     event := models.UserRegisteredEvent / user_registered
+
 func (s *AuthService) Register(ctx context.Context, registerRequest param.RegisterRequest) error {
 	// Hash the password
 	passwordHash, err := utils.HashPassword(registerRequest.Password)

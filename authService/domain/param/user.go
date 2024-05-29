@@ -1,11 +1,13 @@
 package param
 
+import "time"
+
 type LoginRequest struct {
 	UsernameOrEmail string `json:"username_or_email"`
 	Password        string `json:"password"`
 }
 type LoginResponse struct {
-	UserID int      `json:"user_id"`
+	//UserID int      `json:"user_id"`
 	Tokens []string `json:"tokens"`
 }
 
@@ -13,6 +15,14 @@ type RegisterRequest struct {
 	Username string `json:"username"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+// RegisterResponse represents the response after a successful registration
+type RegisterResponse struct {
+	UserID    int       `json:"user_id"`
+	Username  string    `json:"username"`
+	Email     string    `json:"email"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 // !

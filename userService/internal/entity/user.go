@@ -2,22 +2,12 @@ package entity
 
 import "time"
 
-type UserDetail struct {
-	UserID      string    `json:"user_id"`
-	FirstName   string    `json:"first_name"`
-	LastName    string    `json:"last_name"`
-	PhoneNumber string    `json:"phone_number"`
-	Email       string    `json:"email"`
-	CreatedAt   time.Time `json:"created_at" gorm:"autoCreateTime"`
-	UpdatedAt   time.Time `json:"updated_at" gorm:"autoUpdateTime"`
-}
-
-type User struct {
-	ID           string    `json:"id" gorm:"primaryKey"`
-	Username     string    `json:"username" gorm:"unique;not null"`
-	Email        string    `json:"email" gorm:"unique;not null"`
-	PhoneNumber  string    `json:"phone_number"`
-	PasswordHash string    `json:"password_hash" gorm:"not null"`
-	CreatedAt    time.Time `json:"created_at" gorm:"autoCreateTime"`
-	UpdatedAt    time.Time `json:"updated_at" gorm:"autoUpdateTime"`
+// UserProfile represents a user profile in the user service
+type UserProfile struct {
+	ID        int        `json:"id"`
+	Username  string     `json:"username"`
+	Email     string     `json:"email"`
+	FullName  *string    `json:"full_name,omitempty"`
+	Birthdate *time.Time `json:"birthdate,omitempty"`
+	CreatedAt time.Time  `json:"created_at"`
 }

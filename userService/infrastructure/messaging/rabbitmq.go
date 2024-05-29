@@ -1,76 +1,83 @@
 package messaging
 
-// import (
-// 	"github.com/streadway/amqp"
-// )
+import (
+	"context"
+	"fmt"
 
-// type RabbitMQ struct {
-// 	conn    *amqp.Connection
-// 	channel *amqp.Channel
-// }
+	amqp "github.com/rabbitmq/amqp091-go"
+)
 
-// func NewRabbitMQ(url string) (*RabbitMQ, error) {
-// 	conn, err := amqp.Dial(url)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+type RabbitMQ struct {
+	conn *amqp.Connection
+	ch   *amqp.Channel
+}
 
-// 	channel, err := conn.Channel()
-// 	if err != nil {
-// 		return nil, err
-// 	}
+func NewRabbitMQ(url string) (*RabbitMQ, error) {
+	conn, err := amqp.Dial(url)
+	if err != nil {
+		return nil, err
+	}
 
-// 	return &RabbitMQ{conn: conn, channel: channel}, nil
-// }
+	ch, err := conn.Channel()
+	if err != nil {
+		return nil, err
+	}
 
-// func (r *RabbitMQ) Publish(message []byte, queueName string) error {
-// 	_, err := r.channel.QueueDeclare(
-// 		queueName, // name
-// 		true,      // durable
-// 		false,     // delete when unused
-// 		false,     // exclusive
-// 		false,     // no-wait
-// 		nil,       // arguments
-// 	)
-// 	if err != nil {
-// 		return err
-// 	}
+	// Enable publisher confirms (optional)
+	if err := ch.Confirm(false); err != nil {
+		ch.Close()   // Close the channel on Confirm error
+		conn.Close() // Also close the connection
+		return nil, fmt.Errorf("failed to enable publisher confirms: %w", err)
+	}
 
-// 	err = r.channel.Publish(
-// 		"",        // exchange
-// 		queueName, // routing key
-// 		false,     // mandatory
-// 		false,     // immediate
-// 		amqp.Publishing{
-// 			ContentType: "text/plain",
-// 			Body:        message,
-// 		})
-// 	return err
-// }
+	return &RabbitMQ{conn: conn, ch: ch}, nil
+}
 
-// func (r *RabbitMQ) Subscribe(queueName string, handler func(message []byte)) error {
-// 	msgs, err := r.channel.Consume(
-// 		queueName, // queue
-// 		"",        // consumer
-// 		true,      // auto-ack
-// 		false,     // exclusive
-// 		false,     // no-local
-// 		false,     // no-wait
-// 		nil,       // args
-// 	)
-// 	if err != nil {
-// 		return err
-// 	}
+// CreateExchange declares a new exchange on the RabbitMQ server
+func (rc RabbitMQ) DeclareExchange(name, kind string) error {
 
-// 	go func() {
-// 		for d := range msgs {
-// 			handler(d.Body)
-// 		}
-// 	}()
-// 	return nil
-// }
+	return rc.ch.ExchangeDeclare(
+		name,  // Name of the exchange
+		kind,  // Type of exchange (e.g., "fanout", "direct", "topic")
+		true,  // Durable (survives server restarts)
+		false, // Delete when unused
+		false, // Exclusive (only this connection can access)
+		false,
+		nil, // Arguments
+	)
+}
 
-// func (r *RabbitMQ) Close() {
-// 	r.channel.Close()
-// 	r.conn.Close()
-// }
+func (rc RabbitMQ) CreateQueue(queueName string, durable, autodelete bool) (amqp.Queue, error) {
+	q, err := rc.ch.QueueDeclare(queueName, durable, autodelete, false, false, nil)
+	if err != nil {
+		return amqp.Queue{}, nil
+	}
+	return q, err
+}
+
+func (rc RabbitMQ) CreateBinding(name, binding, exchange string) error {
+	return rc.ch.QueueBind(name, binding, exchange, false, nil)
+}
+
+// ! PublishMessage sends a message to a specific exchange with a routing key
+func (rc RabbitMQ) Publish(ctx context.Context, exchangeName string, routingKey string, options amqp.Publishing) error {
+
+	return rc.ch.PublishWithContext(
+		ctx,
+		exchangeName, // Name of the exchange
+		routingKey,   // Routing key for message
+		false,        // Mandatory (if true, message is rejected if no queue is bound)
+		false,        // Immediate (if true, delivery happens now, or fails)
+		options,
+	)
+
+}
+
+func (rc RabbitMQ) Consume(queue, consumer string, autoAck bool) (<-chan amqp.Delivery, error) {
+	return rc.ch.Consume(queue, consumer, autoAck, false, false, false, nil)
+}
+
+func (r *RabbitMQ) Close() {
+	r.ch.Close()
+	r.conn.Close()
+}
