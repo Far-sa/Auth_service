@@ -29,7 +29,7 @@ func (h *AuthHandler) Login(ctx context.Context, req *pb.LoginRequest) (*pb.Logi
 		return nil, err
 	}
 
-	return &pb.LoginResponse{AccessToken: resp.TokenPair.AccessToken.Token}, nil
+	return &pb.LoginResponse{AccessToken: resp.TokenPair.AccessToken, UserId: resp.UserID}, nil
 }
 
 // Register implements the gRPC Register method

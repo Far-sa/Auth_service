@@ -27,7 +27,10 @@ message LoginRequest {
   string password = 2;
 }
 
-message LoginResponse { string access_token = 1; }
+message LoginResponse { 
+  string access_token = 1;
+  string user_id = 2;
+ }
 
 message RegisterRequest {
   string username = 1;

@@ -1,7 +1,6 @@
 package param
 
 import (
-	"authentication-service/domain/entities"
 	"time"
 )
 
@@ -12,7 +11,8 @@ type LoginRequest struct {
 
 // LoginResponse represents the response after a successful login
 type LoginResponse struct {
-	TokenPair entities.TokenPair `json:"token_pair"`
+	UserID    string    `json:"user_id"`
+	TokenPair TokenPair `json:"token_pair"`
 }
 
 type RegisterRequest struct {
@@ -29,20 +29,8 @@ type RegisterResponse struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-// !
-type UserResponse struct {
-	ID           int    `json:"id"`
-	PasswordHash string `json:"password_hash"`
-	Error        string `json:"error,omitempty"`
-}
-
-type RegisterUserRequest struct {
-	Username     string `json:"username"`
-	Email        string `json:"email"`
-	PasswordHash string `json:"password_hash"`
-}
-
-type RegisterUserResponse struct {
-	Success bool   `json:"success"`
-	Error   string `json:"error,omitempty"`
+type TokenPair struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+	ExpiresAt    int64  `json:"expires_at"` // Unix timestamp
 }

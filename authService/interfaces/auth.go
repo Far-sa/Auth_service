@@ -17,7 +17,7 @@ type AuthenticationService interface {
 type AuthRepository interface {
 	SaveToke(ctx context.Context, user *entities.TokenPair) error
 	FindByUsernameOrEmail(ctx context.Context, usernameOrEmail string) (*entities.User, error)
-	SaveUser(ctx context.Context) error
+	SaveUser(ctx context.Context, user entities.User) error
 }
 
 type AuthEvents interface {

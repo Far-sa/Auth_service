@@ -15,7 +15,7 @@ import (
 
 func (r *DB) SaveToken(ctx context.Context, token *entities.TokenPair) error {
 	query := `INSERT INTO tokens (user_id, access_token, refresh_token) VALUES ($1, $2, $3)`
-	_, err := r.conn.Conn().ExecContext(ctx, query, token.UserID, token.AccessToken, token.RefreshToken)
+	_, err := r.conn.Conn().ExecContext(ctx, query, token.AccessToken, token.RefreshToken)
 	return err
 
 }
@@ -24,7 +24,14 @@ func (r *DB) FindByUsernameOrEmail(ctx context.Context, usernameOrEmail string) 
 	return nil, nil
 }
 
-func (r *DB) SaveUser(ctx context.Context) error {
+func (r *DB) SaveUser(ctx context.Context, user entities.User) error {
+
+	query := "INSERT INTO users (username, email,password) VALUES($1,$2,$3)"
+
+	_, err := r.conn.Conn().ExecContext(ctx, query, user.Username, user.Email, user.PasswordHash)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

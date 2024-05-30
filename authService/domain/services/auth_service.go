@@ -8,7 +8,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -43,10 +42,12 @@ func (s *AuthService) Register(ctx context.Context, registerRequest param.Regist
 	}
 
 	// Create a user request to send to the User Service
-	userRequest := param.RegisterUserRequest{
+	userRequest := entities.User{
+		ID:           "",
 		Username:     registerRequest.Username,
 		Email:        registerRequest.Email,
 		PasswordHash: passwordHash,
+		CreatedAt:    time.Now(),
 	}
 
 	body, err := json.Marshal(userRequest)
@@ -54,15 +55,11 @@ func (s *AuthService) Register(ctx context.Context, registerRequest param.Regist
 		return err
 	}
 
-	//TODO save to database
 	// Save user to the database (pseudo-code, replace with actual DB code)
-	// userID, err := saveUserToDB(user)
-	// if err != nil {
-	//     http.Error(w, "Internal server error", http.StatusInternalServerError)
-	//     return
-	// }
-
-	// user.ID = userID
+	sErr := s.authRepository.SaveUser(ctx, userRequest)
+	if sErr != nil {
+		return sErr
+	}
 
 	// Publish the user data to the User Service
 	err = s.messagePublisher.Publish(ctx, "auth_exchange", "auth_to_user_key", amqp.Publishing{Body: body})
@@ -76,7 +73,6 @@ func (s *AuthService) Register(ctx context.Context, registerRequest param.Regist
 func (s *AuthService) Login(ctx context.Context, loginRequest param.LoginRequest) (param.LoginResponse, error) {
 
 	//* get user data from database and compare passwords
-	//* Find the user by username or email based on the login request
 	user, err := s.authRepository.FindByUsernameOrEmail(ctx, loginRequest.UsernameOrEmail)
 	if err != nil {
 		return param.LoginResponse{}, err
@@ -84,7 +80,7 @@ func (s *AuthService) Login(ctx context.Context, loginRequest param.LoginRequest
 
 	//* Validate the password (compare hashed password with provided password)
 	if !isValidPassword(loginRequest.Password, string(user.PasswordHash)) {
-		return param.LoginResponse{}, errors.New("Invalid credentials")
+		return param.LoginResponse{}, errors.New("invalid credentials")
 	}
 
 	//* Generate tokens using the utils package
@@ -99,23 +95,26 @@ func (s *AuthService) Login(ctx context.Context, loginRequest param.LoginRequest
 		return param.LoginResponse{}, err
 	}
 
-	//! Convert tokens to entities.Token type
-	tokens := s.convertTokens(user.ID, accessToken, refreshToken)
-	fmt.Println(tokens)
-	return param.LoginResponse{TokenPair: entities.TokenPair{AccessToken: accessToken, RefreshToken: refreshToken}}, nil
+	tokens := entities.TokenPair{
+		AccessToken:  entities.AccessToken{Token: accessToken},
+		RefreshToken: entities.RefreshToken{Token: refreshToken},
+	}
+	s.authRepository.SaveToke(ctx, tokens)
+
+	return param.LoginResponse{UserID: user.ID, TokenPair: param.TokenPair{AccessToken: accessToken, RefreshToken: refreshToken}}, nil
 }
 
-func (s *AuthService) convertTokens(userID string, tokenStrings ...string) []entities.TokenPair {
-	var tokens []entities.TokenPair
-	for _, tokenString := range tokenStrings {
-		token := entities.TokenPair{
-			AccessToken:  entities.AccessToken{Token: tokenString, ExpiresAt: time.Now().Add(24 * time.Hour)},
-			RefreshToken: entities.RefreshToken{Token: tokenString, ExpiresAt: time.Now().Add(7 * 24 * time.Hour)},
-		}
-		tokens = append(tokens, token)
-	}
-	return tokens
-}
+// func (s *AuthService) convertTokens(userID string, tokenStrings ...string) []entities.TokenPair {
+// 	var tokens []entities.TokenPair
+// 	for _, tokenString := range tokenStrings {
+// 		token := entities.TokenPair{
+// 			AccessToken:  entities.AccessToken{Token: tokenString, ExpiresAt: time.Now().Add(24 * time.Hour)},
+// 			RefreshToken: entities.RefreshToken{Token: tokenString, ExpiresAt: time.Now().Add(7 * 24 * time.Hour)},
+// 		}
+// 		tokens = append(tokens, token)
+// 	}
+// 	return tokens
+// }
 
 // isValidPassword checks if the provided password matches the hashed password.
 func isValidPassword(password string, hashedPassword string) bool {
