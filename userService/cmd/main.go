@@ -9,7 +9,7 @@ import (
 	standard_runtime "runtime"
 
 	"user-service/delivery/gateway"
-	delivery "user-service/delivery/grpc"
+	"user-service/delivery/grpc"
 	"user-service/infrastructure/database"
 	"user-service/infrastructure/messaging"
 	"user-service/infrastructure/repository"
@@ -51,13 +51,8 @@ func main() {
 	userEvent, _ := messaging.NewRabbitMQ(amqpUrl)
 	userSvc := service.NewUserService(userRepo, userEvent)
 
-	grpcServer := delivery.NewGRPCServer(userSvc)
-
-	go func() {
-		if err := grpcServer.Serve(lis); err != nil {
-			log.Fatalf("Failed to serve gRPC server: %v", err)
-		}
-	}()
+	userHandler := grpc.New(userSvc)
+	userHandler.Start()
 
 	ctx := context.Background()
 	if err := gateway.RunHTTPGateway(ctx, lis.Addr().String()); err != nil {
