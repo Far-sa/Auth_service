@@ -20,11 +20,18 @@ func (r *DB) SaveToken(ctx context.Context, token *entities.TokenPair) error {
 
 }
 
-func (r *DB) FindByUsernameOrEmail(ctx context.Context, usernameOrEmail string) (*entities.User, error) {
-	return nil, nil
+func (r *DB) FindByUserEmail(ctx context.Context, Email string) (*entities.User, error) {
+	query := `SELECT * FROM users WHERE email = $1`
+	row := r.conn.Conn().QueryRowContext(ctx, query, Email)
+	user := &entities.User{}
+	err := row.Scan(&user.ID, &user.Username, &user.Email, &user.PasswordHash)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
 }
 
-func (r *DB) SaveUser(ctx context.Context, user entities.User) error {
+func (r *DB) SaveUser(ctx context.Context, user *entities.User) error {
 
 	query := "INSERT INTO users (username, email,password) VALUES($1,$2,$3)"
 
@@ -34,25 +41,3 @@ func (r *DB) SaveUser(ctx context.Context, user entities.User) error {
 	}
 	return nil
 }
-
-// func (r *DB) FindByUsernameOrEmail(ctx context.Context, usernameOrEmail string) (*entities.User, error) {
-// 	// Prepared statement for finding a user by username or email
-// 	query := `SELECT * FROM users WHERE username = $1 OR email = $2`
-
-// 	// Execute the prepared statement with username/email
-// 	row := r.conn.Conn().QueryRowContext(ctx, query, usernameOrEmail, usernameOrEmail)
-
-// 	// Scan the row into a user object
-// 	var u entities.User
-// 	err := row.Scan(&u.ID, &u.Username, &u.Email, &u.PasswordHash)
-// 	if err != nil {
-// 		if err == sql.ErrNoRows {
-// 			return nil, nil // User not found
-// 		}
-// 		return nil, err
-// 	}
-
-// 	return &u, nil
-// }
-
-// ... Implementations for other user repository methods using r.db object and reusable functions

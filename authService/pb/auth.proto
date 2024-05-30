@@ -23,13 +23,14 @@ service AuthService {
 }
 
 message LoginRequest {
-  string username_or_email = 1;
+  string email = 1;
   string password = 2;
 }
 
 message LoginResponse { 
   string access_token = 1;
-  string user_id = 2;
+  string refresh_token = 2;
+  string user_id = 3;
  }
 
 message RegisterRequest {

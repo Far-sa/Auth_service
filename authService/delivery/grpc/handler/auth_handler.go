@@ -22,8 +22,8 @@ func NewAuthHandler(authService interfaces.AuthenticationService) *AuthHandler {
 // Login implements the gRPC Login method
 func (h *AuthHandler) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
 	resp, err := h.authService.Login(ctx, param.LoginRequest{
-		UsernameOrEmail: req.GetUsernameOrEmail(),
-		Password:        req.GetPassword(),
+		Email:    req.GetEmail(),
+		Password: req.GetPassword(),
 	})
 	if err != nil {
 		return nil, err

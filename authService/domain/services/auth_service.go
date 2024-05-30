@@ -42,7 +42,7 @@ func (s *AuthService) Register(ctx context.Context, registerRequest param.Regist
 	}
 
 	// Create a user request to send to the User Service
-	userRequest := entities.User{
+	userRequest := &entities.User{
 		ID:           "",
 		Username:     registerRequest.Username,
 		Email:        registerRequest.Email,
@@ -73,7 +73,7 @@ func (s *AuthService) Register(ctx context.Context, registerRequest param.Regist
 func (s *AuthService) Login(ctx context.Context, loginRequest param.LoginRequest) (param.LoginResponse, error) {
 
 	//* get user data from database and compare passwords
-	user, err := s.authRepository.FindByUsernameOrEmail(ctx, loginRequest.UsernameOrEmail)
+	user, err := s.authRepository.FindByUserEmail(ctx, loginRequest.Email)
 	if err != nil {
 		return param.LoginResponse{}, err
 	}
@@ -95,11 +95,12 @@ func (s *AuthService) Login(ctx context.Context, loginRequest param.LoginRequest
 		return param.LoginResponse{}, err
 	}
 
-	tokens := entities.TokenPair{
-		AccessToken:  entities.AccessToken{Token: accessToken},
-		RefreshToken: entities.RefreshToken{Token: refreshToken},
+	tokens := &entities.TokenPair{
+		AccessToken:  entities.AccessToken{Token: accessToken, ExpiresAt: time.Now().Add(24 * time.Hour)},
+		RefreshToken: entities.RefreshToken{Token: refreshToken, ExpiresAt: time.Now().Add(7 * 24 * time.Hour)},
 	}
-	s.authRepository.SaveToke(ctx, tokens)
+
+	s.authRepository.SaveToken(ctx, tokens)
 
 	return param.LoginResponse{UserID: user.ID, TokenPair: param.TokenPair{AccessToken: accessToken, RefreshToken: refreshToken}}, nil
 }

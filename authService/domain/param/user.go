@@ -5,8 +5,8 @@ import (
 )
 
 type LoginRequest struct {
-	UsernameOrEmail string `json:"username_or_email"`
-	Password        string `json:"password"`
+	Email    string `json:"username_or_email"`
+	Password string `json:"password"`
 }
 
 // LoginResponse represents the response after a successful login
