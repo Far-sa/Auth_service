@@ -26,6 +26,11 @@ func (m *MockAuthorizationService) CheckPermission(ctx context.Context, username
 	return args.Bool(0), args.Error(1)
 }
 
+func (m *MockAuthorizationService) HandleUserAuthenticatedEvent(ctx context.Context, message string) error {
+	args := m.Called(ctx, message)
+	return args.Error(0)
+}
+
 func TestAssignRole(t *testing.T) {
 	mockAuthService := new(MockAuthorizationService)
 	handler := handler.NewAuthzHandler(mockAuthService)

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"log"
 )
 
@@ -36,6 +37,13 @@ func (r *DB) CheckPermission(ctx context.Context, username, permission string) (
 
 func (r *DB) UpdateUserRoles(ctx context.Context, userID string, role string) error {
 	log.Printf("Updating roles for user: %s to role: %s", userID, role)
-	// Logic to update roles in the database
+	query := "update users set role = $1 where id = $2"
+	_, err := r.conn.Conn().ExecContext(ctx, query, role, userID)
+
+	if err != nil {
+		// Log and return the error if the query execution failed
+		err = fmt.Errorf("error updating roles for user %s: %w", userID, err)
+		return err
+	}
 	return nil
 }
