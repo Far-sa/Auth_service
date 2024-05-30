@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"log"
 	"net"
 	"user-service/delivery/grpc/handler"
 	"user-service/internal/interfaces"
@@ -11,20 +12,26 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
-type grpcServer struct {
+type GRPCServer struct {
 	userService interfaces.UserService
 	userHandler *handler.UserHandler // Handler for authentication service methods
 }
 
-func NewGRPCServer(userService interfaces.UserService, userHandler *handler.UserHandler) *grpcServer {
-	return &grpcServer{userService: userService, userHandler: userHandler}
+func NewGRPCServer(userService interfaces.UserService) *GRPCServer {
+	userHandler := handler.NewUserHandler(userService)
+	return &GRPCServer{
+		userService: userService,
+		userHandler: userHandler,
+	}
 }
 
-func (s *grpcServer) Serve(lis net.Listener) error {
+func (s *GRPCServer) Serve(lis net.Listener) error {
 	grpcServer := grpc.NewServer()
-	pb.RegisterUserServiceServer(grpcServer, s.userHandler) // Register handler for AuthService
+	pb.RegisterUserServiceServer(grpcServer, s.userHandler)
 
 	// Enable server reflection
 	reflection.Register(grpcServer)
+
+	log.Printf("Serving gRPC on %s", lis.Addr().String())
 	return grpcServer.Serve(lis)
 }

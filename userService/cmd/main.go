@@ -5,48 +5,18 @@ import (
 	"context"
 	"log"
 	"net"
-	"net/http"
 	"path"
 	standard_runtime "runtime"
 
-	"user-service/delivery/grpc/handler"
+	"user-service/delivery/gateway"
+	delivery "user-service/delivery/grpc"
 	"user-service/infrastructure/database"
 	"user-service/infrastructure/messaging"
 	"user-service/infrastructure/repository"
-	"user-service/internal/interfaces"
 	"user-service/internal/service"
-	"user-service/pb"
 
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	_ "github.com/lib/pq"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 )
-
-func runGRPCServer(lis net.Listener, userService interfaces.UserService) {
-	grpcServer := grpc.NewServer()
-	userHandler := handler.NewUserHandler(userService)
-	pb.RegisterUserServiceServer(grpcServer, userHandler)
-	reflection.Register(grpcServer)
-
-	// add get user endpoint to grpc server
-
-	log.Printf("Serving gRPC on %s", lis.Addr().String())
-	if err := grpcServer.Serve(lis); err != nil {
-		log.Fatalf("Failed to serve gRPC server: %v", err)
-	}
-}
-
-func runHTTPGateway(ctx context.Context, grpcEndpoint string) error {
-	mux := runtime.NewServeMux()
-	opts := []grpc.DialOption{grpc.WithInsecure()}
-	if err := pb.RegisterUserServiceHandlerFromEndpoint(ctx, mux, grpcEndpoint, opts); err != nil {
-		return err
-	}
-
-	log.Println("Serving gRPC-Gateway on http://localhost:8080")
-	return http.ListenAndServe(":8080", mux)
-}
 
 func main() {
 	lis, err := net.Listen("tcp", ":50053")
@@ -81,9 +51,17 @@ func main() {
 	userEvent, _ := messaging.NewRabbitMQ(amqpUrl)
 	userSvc := service.NewUserService(userRepo, userEvent)
 
-	go runGRPCServer(lis, userSvc)
+	grpcServer := delivery.NewGRPCServer(userSvc)
+
+	go func() {
+		if err := grpcServer.Serve(lis); err != nil {
+			log.Fatalf("Failed to serve gRPC server: %v", err)
+		}
+	}()
+
 	ctx := context.Background()
-	if err := runHTTPGateway(ctx, lis.Addr().String()); err != nil {
+	if err := gateway.RunHTTPGateway(ctx, lis.Addr().String()); err != nil {
 		log.Fatalf("Failed to run gRPC-Gateway: %v", err)
 	}
+
 }

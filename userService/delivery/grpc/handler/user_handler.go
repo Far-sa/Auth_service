@@ -21,7 +21,10 @@ func (h *UserHandler) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.
 		return nil, err
 	}
 	// createdAt, _ := time.Parse(time.RFC3339, user.CreateAt)
-	return &pb.GetUserResponse{Email: user.UserProfile.Email, Name: *user.UserProfile.FullName}, nil
+	return &pb.GetUserResponse{
+		Email: user.UserProfile.Email,
+		Name:  *user.UserProfile.FullName,
+	}, nil
 }
 
 // func (h *UserHandler) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.CreateUserResponse, error) {
