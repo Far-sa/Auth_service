@@ -1,55 +1,24 @@
 package main
 
 import (
-	"authorization-service/delivery/gprc/handler"
+	delivery "authorization-service/delivery/gprc"
 	"authorization-service/infrastructure/database"
 	"authorization-service/infrastructure/database/migrator"
 	"authorization-service/infrastructure/messaging"
 	"authorization-service/infrastructure/messaging/rabbitmq"
 	"authorization-service/infrastructure/repository"
-	"authorization-service/internal/interfaces"
 	"authorization-service/internal/service"
-	"authorization-service/pb"
 	"path"
 	standard_runtime "runtime"
+	"user-service/delivery/gateway"
 
 	"context"
 	"log"
 	"net"
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
-
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 )
-
-func runGRPCServer(lis net.Listener, authzService interfaces.AuthorizationService) error {
-	grpcServer := grpc.NewServer()
-	authzHandler := handler.NewAuthzHandler(authzService)
-	pb.RegisterAuthorizationServiceServer(grpcServer, authzHandler)
-	reflection.Register(grpcServer)
-
-	log.Printf("Serving gRPC on %s", lis.Addr().String())
-	if err := grpcServer.Serve(lis); err != nil {
-		log.Fatalf("Failed to serve gRPC server: %v", err)
-	}
-	return nil
-}
-
-func runHTTPGateway(ctx context.Context, grpcEndpoint string) error {
-	mux := runtime.NewServeMux()
-	opts := []grpc.DialOption{grpc.WithInsecure()}
-	if err := pb.RegisterAuthorizationServiceHandlerFromEndpoint(ctx, mux, grpcEndpoint, opts); err != nil {
-		return err
-	}
-
-	log.Println("Serving gRPC-Gateway on http://localhost:8080")
-	return http.ListenAndServe(":8080", mux)
-}
 
 func main() {
 
@@ -106,21 +75,12 @@ func main() {
 	}()
 
 	// Start the authorization service
-	go func() {
-		if err := runGRPCServer(lis, authzService); err != nil {
-			log.Printf("gRPC server stopped with error: %v", err)
-			cancel()
-		}
-	}()
+	authzhandelr := delivery.NewGRPCServer(authzService)
+	authzhandelr.Serve()
 
-	//go runGRPCServer(lis, authzService)
-
-	go func() {
-		if err := runHTTPGateway(ctx, lis.Addr().String()); err != nil {
-			log.Printf("Failed to run gRPC-Gateway: %v", err)
-			cancel()
-		}
-	}()
+	if err := gateway.RunHTTPGateway(ctx, lis.Addr().String()); err != nil {
+		log.Fatalf("Failed to run gRPC-Gateway: %v", err)
+	}
 
 	// Handle OS signals for graceful shutdown
 	signalChan := make(chan os.Signal, 1)
