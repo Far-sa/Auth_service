@@ -29,6 +29,8 @@ func runGRPCServer(lis net.Listener, userService interfaces.UserService) {
 	pb.RegisterUserServiceServer(grpcServer, userHandler)
 	reflection.Register(grpcServer)
 
+	// add get user endpoint to grpc server
+
 	log.Printf("Serving gRPC on %s", lis.Addr().String())
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalf("Failed to serve gRPC server: %v", err)
@@ -47,7 +49,7 @@ func runHTTPGateway(ctx context.Context, grpcEndpoint string) error {
 }
 
 func main() {
-	lis, err := net.Listen("tcp", ":50052")
+	lis, err := net.Listen("tcp", ":50053")
 
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)

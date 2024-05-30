@@ -8,12 +8,12 @@ import "google/api/annotations.proto";
 option go_package = "user-service/pb";
 
 service UserService {
-  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse){
-    option (google.api.http) = {
-      post: "/v1/users/register"
-      body: "*"
-    };
-  };
+  // rpc CreateUser(CreateUserRequest) returns (CreateUserResponse){
+  //   option (google.api.http) = {
+  //     post: "/v1/users/register"
+  //     body: "*"
+  //   };
+  // };
   rpc GetUser(GetUserRequest) returns (GetUserResponse){
     option (google.api.http) = {
       get: "/v1/users/{user_id}"
