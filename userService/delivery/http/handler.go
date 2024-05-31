@@ -16,13 +16,13 @@ func NewHTTPAuthHandler(userService interfaces.UserService) *UserHandler {
 }
 
 func (h *UserHandler) GetUserByEmail(w http.ResponseWriter, r *http.Request) {
-	var userReq param.UserProfileResponse
+	var userReq param.GetUserByEmail
 	if err := json.NewDecoder(r.Body).Decode(&userReq); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	resp, err := h.userService.GetUserByEmail(r.Context(), userReq)
+	resp, err := h.userService.GetUserByEmail(r.Context(), userReq.Email)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

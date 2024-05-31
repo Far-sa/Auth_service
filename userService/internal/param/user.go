@@ -22,7 +22,14 @@ import (
 // 	UserInfo
 // }
 
-// UserRegisteredEvent represents the event when a user registers
+type GetUser struct {
+	UserID string `json:"user_id"`
+}
+
+type GetUserByEmail struct {
+	Email string `json:"email"`
+}
+
 type UserRegisteredEvent struct {
 	UserID    int       `json:"user_id"`
 	Username  string    `json:"username"`

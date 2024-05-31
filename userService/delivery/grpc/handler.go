@@ -4,6 +4,7 @@ import (
 	"context"
 	"user-service/internal/interfaces"
 	user "user-service/pb"
+	mapper "user-service/utils/protobufMapper"
 	// Replace with your package paths
 )
 
@@ -19,16 +20,16 @@ func New(userService interfaces.UserService) *grpcHandler {
 func (s *grpcHandler) GetUser(ctx context.Context, req *user.GetUserRequest) (*user.GetUserResponse, error) {
 
 	//* map proto to param
-	
-	user, err := s.userService.GetUser(req.UserId)
+	pb := mapper.PbToParamGetUserRequest(req)
+
+	user, err := s.userService.GetUser(pb.UserID)
 	if err != nil {
 		return nil, err
 	}
-	// createdAt, _ := time.Parse(time.RFC3339, user.CreateAt)
-	return &user.GetUserResponse{
-		Email: user.UserProfile.Email,
-		Name:  *user.UserProfile.FullName,
-	}, nil
+
+	//* map param to proto
+	resp := mapper.ToPbUserProfileResponse(user)
+	return resp, nil
 }
 
 func (s *grpcHandler) UpdateUser(ctx context.Context, req *user.UpdateUserRequest) (*user.UpdateUserResponse, error) {
