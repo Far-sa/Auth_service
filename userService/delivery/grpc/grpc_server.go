@@ -6,7 +6,7 @@ import (
 	"log"
 	"net"
 	"user-service/internal/interfaces"
-	"user-service/pb"
+	user "user-service/pb"
 
 	// Replace with your package paths
 	"google.golang.org/grpc"
@@ -15,7 +15,7 @@ import (
 
 type grpcServer struct {
 	userService interfaces.UserService
-	pb.UnimplementedUserServiceServer
+	user.UnimplementedUserServiceServer
 }
 
 func New(userService interfaces.UserService) *grpcServer {
@@ -32,7 +32,7 @@ func (s *grpcServer) Start() {
 	userServiceServer := &grpcServer{}
 
 	grpcServer := grpc.NewServer()
-	pb.RegisterUserServiceServer(grpcServer, userServiceServer)
+	user.RegisterUserServiceServer(grpcServer, userServiceServer)
 
 	// Enable server reflection
 	reflection.Register(grpcServer)
@@ -45,22 +45,22 @@ func (s *grpcServer) Start() {
 	}()
 }
 
-func (s *grpcServer) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.GetUserResponse, error) {
+func (s *grpcServer) GetUser(ctx context.Context, req *user.GetUserRequest) (*user.GetUserResponse, error) {
 	user, err := s.userService.GetUser(req.UserId)
 	if err != nil {
 		return nil, err
 	}
 	// createdAt, _ := time.Parse(time.RFC3339, user.CreateAt)
-	return &pb.GetUserResponse{
+	return &user.GetUserResponse{
 		Email: user.UserProfile.Email,
 		Name:  *user.UserProfile.FullName,
 	}, nil
 }
 
-func (s *grpcServer) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UpdateUserResponse, error) {
+func (s *grpcServer) UpdateUser(ctx context.Context, req *user.UpdateUserRequest) (*user.UpdateUserResponse, error) {
 	// Implement user update logic
 	// Publish event to RabbitMQ (example)
 
 	//* publishEvent("user_updates", []byte("User updated"))
-	return &pb.UpdateUserResponse{Success: true}, nil
+	return &user.UpdateUserResponse{Success: true}, nil
 }

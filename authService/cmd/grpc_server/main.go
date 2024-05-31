@@ -7,7 +7,7 @@ import (
 	"authentication-service/infrastructure/database/migrator"
 	"authentication-service/infrastructure/messaging"
 	"authentication-service/infrastructure/repository"
-	"authentication-service/pb"
+	auth "authentication-service/pb"
 	"log"
 	"net"
 	"path"
@@ -52,7 +52,7 @@ func main() {
 	authHandler := grpcServer.NewGRPCHandler(authService)
 
 	grpcServer := grpc.NewServer()
-	pb.RegisterAuthServiceServer(grpcServer, authHandler) // Register handler for AuthService
+	auth.RegisterAuthServiceServer(grpcServer, authHandler) // Register handler for AuthService
 
 	// Enable server reflection
 	reflection.Register(grpcServer)

@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             v4.25.3
-// source: pb/authz.proto
+// source: shared-proto/authz.proto
 
-package pb
+package authz
 
 import (
 	context "context"
@@ -38,7 +38,7 @@ func NewAuthorizationServiceClient(cc grpc.ClientConnInterface) AuthorizationSer
 
 func (c *authorizationServiceClient) AssignRole(ctx context.Context, in *AssignRoleRequest, opts ...grpc.CallOption) (*AssignRoleResponse, error) {
 	out := new(AssignRoleResponse)
-	err := c.cc.Invoke(ctx, "/pb.AuthorizationService/AssignRole", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/authz.AuthorizationService/AssignRole", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func (c *authorizationServiceClient) AssignRole(ctx context.Context, in *AssignR
 
 func (c *authorizationServiceClient) CheckPermission(ctx context.Context, in *CheckPermissionRequest, opts ...grpc.CallOption) (*CheckPermissionResponse, error) {
 	out := new(CheckPermissionResponse)
-	err := c.cc.Invoke(ctx, "/pb.AuthorizationService/CheckPermission", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/authz.AuthorizationService/CheckPermission", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +98,7 @@ func _AuthorizationService_AssignRole_Handler(srv interface{}, ctx context.Conte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/pb.AuthorizationService/AssignRole",
+		FullMethod: "/authz.AuthorizationService/AssignRole",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AuthorizationServiceServer).AssignRole(ctx, req.(*AssignRoleRequest))
@@ -116,7 +116,7 @@ func _AuthorizationService_CheckPermission_Handler(srv interface{}, ctx context.
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/pb.AuthorizationService/CheckPermission",
+		FullMethod: "/authz.AuthorizationService/CheckPermission",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AuthorizationServiceServer).CheckPermission(ctx, req.(*CheckPermissionRequest))
@@ -128,7 +128,7 @@ func _AuthorizationService_CheckPermission_Handler(srv interface{}, ctx context.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var AuthorizationService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "pb.AuthorizationService",
+	ServiceName: "authz.AuthorizationService",
 	HandlerType: (*AuthorizationServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -141,5 +141,5 @@ var AuthorizationService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "pb/authz.proto",
+	Metadata: "shared-proto/authz.proto",
 }

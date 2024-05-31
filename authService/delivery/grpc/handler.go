@@ -2,7 +2,7 @@ package grpcServer
 
 import (
 	"authentication-service/interfaces"
-	"authentication-service/pb"
+	auth "authentication-service/pb"
 	mapper "authentication-service/utils/protobufMapper"
 	"context"
 	// Replace with your package paths
@@ -10,7 +10,7 @@ import (
 
 type grpcHandler struct {
 	authService interfaces.AuthenticationService // Interface for dependency injection
-	pb.UnimplementedAuthServiceServer
+	auth.UnimplementedAuthServiceServer
 }
 
 func NewGRPCHandler(authService interfaces.AuthenticationService) *grpcHandler {
@@ -18,7 +18,7 @@ func NewGRPCHandler(authService interfaces.AuthenticationService) *grpcHandler {
 }
 
 // Implement handler functions for other gRPC service methods defined in your `auth.proto` file
-func (s *grpcHandler) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
+func (s *grpcHandler) Login(ctx context.Context, req *auth.LoginRequest) (*auth.LoginResponse, error) {
 
 	//* convert request from protobuf to param.LoginRequest
 	paramReq := mapper.PbToParamLoginRequest(req)

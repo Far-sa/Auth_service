@@ -1,8 +1,9 @@
 syntax = "proto3";
 
-package pb;
+package authz;
 
-option go_package = "authorization-service/pb";
+option go_package = "./;authz";
+//option go_package = "authz";
 
 import "google/api/annotations.proto";
 

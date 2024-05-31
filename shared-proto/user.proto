@@ -1,11 +1,13 @@
 syntax = "proto3";
 
-package pb;
+package user;
 
 import "google/protobuf/timestamp.proto";
 import "google/api/annotations.proto";
 
-option go_package = "user-service/pb";
+
+option go_package = "./;user";
+/// option go_package = "user-service/user";
 
 service UserService {
   rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse) {

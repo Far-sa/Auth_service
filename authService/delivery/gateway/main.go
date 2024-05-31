@@ -1,7 +1,7 @@
 package main
 
 import (
-	"authentication-service/pb"
+	auth "authentication-service/pb"
 	"context"
 	"log"
 	"net/http"
@@ -13,7 +13,7 @@ import (
 func RunHTTPGateway(ctx context.Context, grpcEndpoint string) error {
 	mux := runtime.NewServeMux()
 	opts := []grpc.DialOption{grpc.WithInsecure()}
-	if err := pb.RegisterAuthServiceHandlerFromEndpoint(ctx, mux, grpcEndpoint, opts); err != nil {
+	if err := auth.RegisterAuthServiceHandlerFromEndpoint(ctx, mux, grpcEndpoint, opts); err != nil {
 		return err
 	}
 
