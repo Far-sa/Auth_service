@@ -19,3 +19,9 @@ func ParamToPbLoginResponse(paramResp param.LoginResponse) *pb.LoginResponse {
 		RefreshToken: paramResp.Tokens.RefreshToken,
 	}
 }
+
+func ToProtoGetUserRequest(email string) *pb.GetUserRequest {
+	return &user.GetUserRequest{
+		Email: email,
+	}
+}

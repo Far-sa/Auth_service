@@ -10,14 +10,13 @@ import (
 
 type AuthenticationService interface {
 	Login(ctx context.Context, loginRequest param.LoginRequest) (param.LoginResponse, error)
-	Register(ctx context.Context, req param.RegisterRequest) error
 	// ... other authentication methods (e.g., refresh token)
 }
 
 type AuthRepository interface {
-	SaveToken(ctx context.Context, tokens *entities.TokenPair) error
-	FindByUserEmail(ctx context.Context, Email string) (*entities.User, error)
-	SaveUser(ctx context.Context, user *entities.User) error
+	SaveToken(ctx context.Context, tokens *entities.Token) error
+	// FindByUserEmail(ctx context.Context, Email string) (*entities.User, error)
+	// SaveUser(ctx context.Context, user *entities.User) error
 }
 
 type AuthEvents interface {

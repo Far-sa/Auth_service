@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package pb;
+
+option go_package = "authorization-service/pb";
+
+import "google/api/annotations.proto";
+
+
+// The authorization service definition.
+service AuthorizationService {
+  // AssignRole assigns a role to a user.
+  rpc AssignRole(AssignRoleRequest) returns (AssignRoleResponse){
+      option (google.api.http) = {
+      post : "/v1/assign-role"
+      body : "*"
+    };
+  };
+  // CheckPermission checks if a user has a specific permission.
+  rpc CheckPermission(CheckPermissionRequest) returns (CheckPermissionResponse){
+     option (google.api.http) = {
+      post : "/v1/check-permission"
+      body : "*"
+    };
+  };
+}
+
+// AssignRoleRequest is the request message for AssignRole.
+message AssignRoleRequest {
+  string username = 1;
+  string role = 2;
+}
+
+// AssignRoleResponse is the response message for AssignRole.
+message AssignRoleResponse {
+  string message = 1;
+}
+
+// CheckPermissionRequest is the request message for CheckPermission.
+message CheckPermissionRequest {
+  string username = 1;
+  string permission = 2;
+}
+
+// CheckPermissionResponse is the response message for CheckPermission.
+message CheckPermissionResponse {
+  bool has_permission = 1;
+}

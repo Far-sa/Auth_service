@@ -5,6 +5,7 @@ import (
 	"authentication-service/domain/param"
 	"authentication-service/interfaces"
 	"authentication-service/utils"
+	mapper "authentication-service/utils/protobufMapper"
 	"context"
 	"errors"
 	"time"
@@ -32,60 +33,27 @@ func NewAuthService(authRepository interfaces.AuthRepository, messagePublisher i
 	}
 }
 
-// ! Event Publication: The authentication service publishes a UserRegisteredEvent to RabbitMQ.
-//!     event := models.UserRegisteredEvent / user_registered
-
-// TODO update method to return message
-// func (s *AuthService) Register(ctx context.Context, registerRequest param.RegisterRequest) error {
-// 	// Hash the password
-// 	passwordHash, err := utils.HashPassword(registerRequest.Password)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	// Create a user request to send to the User Service
-// 	userRequest := &entities.User{
-// 		ID:           "",
-// 		Username:     registerRequest.Username,
-// 		Email:        registerRequest.Email,
-// 		PasswordHash: passwordHash,
-// 		CreatedAt:    time.Now(),
-// 	}
-
-// 	body, err := json.Marshal(userRequest)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	// Save user to the database (pseudo-code, replace with actual DB code)
-// 	sErr := s.authRepository.SaveUser(ctx, userRequest)
-// 	if sErr != nil {
-// 		return sErr
-// 	}
-
-// 	// Publish the user data to the User Service
-// 	err = s.messagePublisher.Publish(ctx, "auth_exchange", "auth_to_user_key", amqp.Publishing{Body: body})
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	return errors.New("no response from user service")
-// }
+// * Event Publication: The authentication service publishes a UserRegisteredEvent to RabbitMQ.
+//*  event := models.UserRegisteredEvent / user_registered
 
 func (s *AuthService) Login(ctx context.Context, loginRequest param.LoginRequest) (param.LoginResponse, error) {
 
-	//! if receive data from grpc server in user service
+	//???????
+	protoReq := mapper.ToProtoGetUserRequest(loginRequest.Email)
 
-	userResp, err := s.userClient.GetUser(ctx, userReq)
+	userResp, err := s.userClient.GetUser(ctx, protoReq)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "could not get user: %v", err)
 	}
 
+	//?????
+	paramUser := mapper.ToDTOGetUserResponse(protoResp)
+
 	//* get user data from database and compare passwords
-	user, err := s.authRepository.FindByUserEmail(ctx, loginRequest.Email)
-	if err != nil {
-		return param.LoginResponse{}, err
-	}
+	// user, err := s.authRepository.FindByUserEmail(ctx, loginRequest.Email)
+	// if err != nil {
+	// 	return param.LoginResponse{}, err
+	// }
 
 	//* Validate the password (compare hashed password with provided password)
 	if !isValidPassword(loginRequest.Password, string(user.PasswordHash)) {
@@ -136,6 +104,44 @@ func generateCorrelationID() string {
 	// Implement a method to generate a unique correlation ID
 	return "some-unique-correlation-id"
 }
+
+// TODO update method to return message
+// func (s *AuthService) Register(ctx context.Context, registerRequest param.RegisterRequest) error {
+// 	// Hash the password
+// 	passwordHash, err := utils.HashPassword(registerRequest.Password)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	// Create a user request to send to the User Service
+// 	userRequest := &entities.User{
+// 		ID:           "",
+// 		Username:     registerRequest.Username,
+// 		Email:        registerRequest.Email,
+// 		PasswordHash: passwordHash,
+// 		CreatedAt:    time.Now(),
+// 	}
+
+// 	body, err := json.Marshal(userRequest)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	// Save user to the database (pseudo-code, replace with actual DB code)
+// 	sErr := s.authRepository.SaveUser(ctx, userRequest)
+// 	if sErr != nil {
+// 		return sErr
+// 	}
+
+// 	// Publish the user data to the User Service
+// 	err = s.messagePublisher.Publish(ctx, "auth_exchange", "auth_to_user_key", amqp.Publishing{Body: body})
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	return errors.New("no response from user service")
+// }
+//!!
 
 // func (s *AuthService) fetchUserData(ctx context.Context, usernameOrEmail string) (param.UserResponse, error) {
 // 	request := map[string]string{"usernameOrEmail": usernameOrEmail}
