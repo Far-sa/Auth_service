@@ -29,8 +29,8 @@ func (s *UserService) ListenForUserRequests() {
 
 }
 
-func (s *UserService) GetUserByUsernameOrEmail(ctx context.Context, usernameOrEmail string) (param.UserProfileResponse, error) {
-	user, err := s.userRepo.FindByUsernameOrEmail(ctx, usernameOrEmail)
+func (s *UserService) GetUserByEmail(ctx context.Context, Email string) (param.UserProfileResponse, error) {
+	user, err := s.userRepo.FindByUsernameOrEmail(ctx, Email)
 	if err != nil {
 		return param.UserProfileResponse{}, nil
 	}

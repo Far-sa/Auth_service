@@ -2,13 +2,14 @@ package mapper
 
 import (
 	"user-service/internal/entity"
-	"user-service/pb"
+	"user-service/internal/param"
+	user "user-service/pb"
 
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func EntityToProtoUser(u *entity.UserProfile) *pb.GetUserResponse {
-	return &pb.GetUserResponse{
+func EntityToProtoUser(u *entity.UserProfile) *user.GetUserResponse {
+	return &user.GetUserResponse{
 		UserId:    u.ID,
 		Name:      u.FullName,
 		Email:     u.Email,
@@ -16,10 +17,11 @@ func EntityToProtoUser(u *entity.UserProfile) *pb.GetUserResponse {
 	}
 }
 
-func ProtoToEntityUser(protoUser *pb.GetUserResponse) *entity.UserProfile {
+func ProtoToEntityUser(protoUser *user.GetUserResponse) *entity.UserProfile {
 	return &entity.UserProfile{
 		ID:       protoUser.UserId,
 		FullName: protoUser.Name,
 		Email:    protoUser.Email,
 	}
 }
+func PbToParamGetUser(req *user.GetUserRequest) param.
