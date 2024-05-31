@@ -80,7 +80,7 @@ services:
     #   retries: 5
     volumes:
       - ./data/postgres12/postgres_data:/var/lib/postgresql/data
-      - ./userService/scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./authorizeSvc/scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
 
   rabbitmq:
     image: rabbitmq:3-management

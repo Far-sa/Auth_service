@@ -72,6 +72,16 @@ func (s *AuthService) Register(ctx context.Context, registerRequest param.Regist
 
 func (s *AuthService) Login(ctx context.Context, loginRequest param.LoginRequest) (param.LoginResponse, error) {
 
+	//! if receive data from grpc server in user service
+	// Retrieve user information from UserService
+	// userReq := &userpb.GetUserRequest{
+	//     Email: req.Email,
+	// }
+	// userResp, err := s.userClient.GetUser(ctx, userReq)
+	// if err != nil {
+	//     return nil, status.Errorf(codes.Internal, "could not get user: %v", err)
+	// }
+
 	//* get user data from database and compare passwords
 	user, err := s.authRepository.FindByUserEmail(ctx, loginRequest.Email)
 	if err != nil {

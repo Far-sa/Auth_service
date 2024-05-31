@@ -8,32 +8,29 @@ import "google/api/annotations.proto";
 option go_package = "user-service/pb";
 
 service UserService {
-  // rpc CreateUser(CreateUserRequest) returns (CreateUserResponse){
-  //   option (google.api.http) = {
-  //     post: "/v1/users/register"
-  //     body: "*"
-  //   };
-  // };
-  rpc GetUser(GetUserRequest) returns (GetUserResponse){
+  rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse) {
     option (google.api.http) = {
-      get: "/v1/getuser/{user_id}"
+      post : "/v1/users/update"
+      body : "*"
     };
   };
+
+  rpc GetUser(GetUserRequest) returns (GetUserResponse) {
+    option (google.api.http) = {
+      get : "/v1/getuser/{user_id}"
+    };
+  };
+
+  rpc CreateUser(RegisterRequest) returns (RegisterResponse) {
+    option (google.api.http) = {
+      post : "/v1/register"
+      body : "*"
+    };
+  }
 }
 
-message CreateUserRequest {
-  string user_id = 1;
-  string name = 2;
-  string email = 3;
-  google.protobuf.Timestamp created_at = 4;
-}
-
-message CreateUserResponse {
-  string user_id = 1;
-}
-
-message GetUserRequest {
-  string user_id = 1;
+message GetUserRequest { 
+  string user_id = 1; 
 }
 
 message GetUserResponse {
@@ -41,4 +38,24 @@ message GetUserResponse {
   string name = 2;
   string email = 3;
   google.protobuf.Timestamp created_at = 4;
+}
+
+message UpdateUserRequest {
+  string user_id = 1;
+  string name = 2;
+  string email = 3;
+}
+
+message UpdateUserResponse { 
+  bool success = 1; 
+}
+
+message RegisterRequest {
+  string username = 1;
+  string email = 2;
+  string password = 3;
+}
+
+message RegisterResponse { 
+  string message = 1; 
 }

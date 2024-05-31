@@ -26,7 +26,7 @@ func NewGRPC(authService interfaces.AuthenticationService) *grpcServer {
 func (s *grpcServer) Serve() {
 
 	// listener
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", 50052))
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", 50054))
 	if err != nil {
 		panic(err)
 	}
@@ -47,6 +47,7 @@ func (s *grpcServer) Serve() {
 
 // Implement handler functions for other gRPC service methods defined in your `auth.proto` file
 func (s grpcServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
+
 	resp, err := s.authService.Login(ctx, param.LoginRequest{
 		Email:    req.GetEmail(),
 		Password: req.GetPassword(),
@@ -60,5 +61,5 @@ func (s grpcServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginR
 
 // Register implements the gRPC Register method
 func (s grpcServer) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
-	panic("")
+	return &pb.RegisterResponse{Message: "unimplemented"}, nil
 }

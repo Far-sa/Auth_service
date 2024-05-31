@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"strings"
 
 	_ "github.com/lib/pq" // Import Postgres driver (if using Postgres)
 )
@@ -25,15 +24,6 @@ func NewSQLDB(url string) (*SqlDB, error) {
 	db, err := sql.Open("postgres", url)
 	if err != nil {
 		panic(fmt.Errorf("can not open postgres database: %v", err))
-	}
-
-	// Create the database if it doesn't exist.
-	_, err = db.Exec("CREATE DATABASE IF NOT EXISTS auth-db")
-	if err != nil {
-		// If the error is due to the database already existing, ignore it.
-		if !strings.Contains(err.Error(), "already exists") {
-			return nil, fmt.Errorf("failed to create database: %w", err)
-		}
 	}
 
 	// Set connection pool parameters (optional)

@@ -14,12 +14,6 @@ service AuthService {
     };
   }
 
-  rpc Register(RegisterRequest) returns (RegisterResponse) {
-    option (google.api.http) = {
-      post : "/v1/register"
-      body : "*"
-    };
-  }
 }
 
 message LoginRequest {
@@ -31,12 +25,7 @@ message LoginResponse {
   string access_token = 1;
   string refresh_token = 2;
   string user_id = 3;
- }
-
-message RegisterRequest {
-  string username = 1;
-  string email = 2;
-  string password = 3;
 }
 
-message RegisterResponse { string message = 1; }
+
+

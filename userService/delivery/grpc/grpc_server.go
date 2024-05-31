@@ -18,30 +18,18 @@ type grpcServer struct {
 	pb.UnimplementedUserServiceServer
 }
 
-func New(userService interfaces.UserService) grpcServer {
-	return grpcServer{userService: userService}
+func New(userService interfaces.UserService) *grpcServer {
+	return &grpcServer{userService: userService}
 }
 
-func (s grpcServer) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.GetUserResponse, error) {
-	user, err := s.userService.GetUser(req.UserId)
-	if err != nil {
-		return nil, err
-	}
-	// createdAt, _ := time.Parse(time.RFC3339, user.CreateAt)
-	return &pb.GetUserResponse{
-		Email: user.UserProfile.Email,
-		Name:  *user.UserProfile.FullName,
-	}, nil
-}
-
-func (s grpcServer) Start() {
+func (s *grpcServer) Start() {
 	// listener
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", 50053))
 	if err != nil {
 		panic(err)
 	}
 
-	userServiceServer := grpcServer{}
+	userServiceServer := &grpcServer{}
 
 	grpcServer := grpc.NewServer()
 	pb.RegisterUserServiceServer(grpcServer, userServiceServer)
@@ -55,4 +43,24 @@ func (s grpcServer) Start() {
 			log.Fatalf("Failed to serve gRPC server: %v", err)
 		}
 	}()
+}
+
+func (s *grpcServer) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.GetUserResponse, error) {
+	user, err := s.userService.GetUser(req.UserId)
+	if err != nil {
+		return nil, err
+	}
+	// createdAt, _ := time.Parse(time.RFC3339, user.CreateAt)
+	return &pb.GetUserResponse{
+		Email: user.UserProfile.Email,
+		Name:  *user.UserProfile.FullName,
+	}, nil
+}
+
+func (s *grpcServer) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UpdateUserResponse, error) {
+	// Implement user update logic
+	// Publish event to RabbitMQ (example)
+
+	//* publishEvent("user_updates", []byte("User updated"))
+	return &pb.UpdateUserResponse{Success: true}, nil
 }
