@@ -5,16 +5,17 @@ import (
 	"authentication-service/pb"
 )
 
-func ToProtoLoginRequest(logReq param.LoginRequest) *pb.LoginRequest {
-	return &pb.LoginRequest{
-		Email:    logReq.Email,
-		Password: logReq.Password,
+func PbToParamLoginRequest(protoReq *pb.LoginRequest) param.LoginRequest {
+	return param.LoginRequest{
+		Email:    protoReq.Email,
+		Password: protoReq.Password,
 	}
 }
 
-func ToParamLoginResponse(protoResp *pb.LoginResponse) param.LoginResponse {
-	return param.LoginResponse{
-		UserID:    protoResp.UserId,
-		TokenPair: protoResp.AccessToken,
+func ParamToPbLoginResponse(paramResp param.LoginResponse) *pb.LoginResponse {
+	return &pb.LoginResponse{
+		UserId:       paramResp.UserID,
+		AccessToken:  paramResp.Tokens.RefreshToken,
+		RefreshToken: paramResp.Tokens.RefreshToken,
 	}
 }

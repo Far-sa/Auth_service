@@ -1,9 +1,9 @@
 package delivery
 
 import (
-	"authentication-service/domain/param"
 	"authentication-service/interfaces"
 	"authentication-service/pb"
+	mapper "authentication-service/utils/protobufMapper"
 	"context"
 	"fmt"
 	"log"
@@ -48,18 +48,16 @@ func (s *grpcServer) Serve() {
 // Implement handler functions for other gRPC service methods defined in your `auth.proto` file
 func (s grpcServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
 
-	resp, err := s.authService.Login(ctx, param.LoginRequest{
-		Email:    req.GetEmail(),
-		Password: req.GetPassword(),
-	})
+	//* convert request from protobuf to param.LoginRequest
+	paramReq := mapper.PbToParamLoginRequest(req)
+
+	resp, err := s.authService.Login(ctx, paramReq)
 	if err != nil {
 		return nil, err
 	}
 
-	return &pb.LoginResponse{AccessToken: resp.TokenPair.AccessToken, UserId: resp.UserID}, nil
-}
+	//* converts the result DTOs back to Protobuf messages
+	protoResp := mapper.ParamToPbLoginResponse(resp)
 
-// Register implements the gRPC Register method
-func (s grpcServer) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
-	return &pb.RegisterResponse{Message: "unimplemented"}, nil
+	return protoResp, nil
 }
