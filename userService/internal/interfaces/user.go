@@ -10,6 +10,7 @@ import (
 
 type UserService interface {
 	GetUser(userID string) (param.UserProfileResponse, error)
+	GetUserByEmail(ctx context.Context, email string) (param.UserProfileResponse, error)
 }
 
 type UserRepository interface {

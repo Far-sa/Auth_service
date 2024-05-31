@@ -64,3 +64,8 @@ func (s *grpcServer) UpdateUser(ctx context.Context, req *user.UpdateUserRequest
 	//* publishEvent("user_updates", []byte("User updated"))
 	return &user.UpdateUserResponse{Success: true}, nil
 }
+
+func (s *grpcServer) GetUserByEmail(ctx context.Context, req *user.GetUserByEmailRequest) (*user.GetUserByEmailResponse, error) {
+	
+	panic("not implemented")
+}

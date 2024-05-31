@@ -11,6 +11,11 @@ type LoginResponse struct {
 	Tokens Token  `json:"token_pair"`
 }
 
+type GetUserResponse struct {
+	Id       string `json:"id"`
+	Password string `json:"password"`
+}
+
 // type RegisterRequest struct {
 // 	Username string `json:"username"`
 // 	Email    string `json:"email"`

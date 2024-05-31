@@ -21,8 +21,15 @@ func ParamToPbLoginResponse(paramResp param.LoginResponse) *auth.LoginResponse {
 	}
 }
 
-func ToProtoGetUserRequest(userId string) *user.GetUserRequest {
-	return &user.GetUserRequest{
-		UserId: userId,
+func ToProtoGetUserRequest(paramRes param.LoginRequest) *user.GetUserByEmailRequest {
+	return &user.GetUserByEmailRequest{
+		Email: paramRes.Email,
+	}
+}
+
+func ToParamGetUserResponse(userResp *user.GetUserByEmailResponse) param.GetUserResponse {
+	return param.GetUserResponse{
+		Id:       userResp.UserId,
+		Password: userResp.Password,
 	}
 }

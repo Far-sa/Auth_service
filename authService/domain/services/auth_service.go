@@ -8,8 +8,7 @@ import (
 	mapper "authentication-service/utils/protobufMapper"
 	"context"
 	"errors"
-	"time"
-	"user-service/pb"
+	user "user-service/pb"
 
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc/codes"
@@ -22,7 +21,7 @@ import (
 type AuthService struct {
 	authRepository   interfaces.AuthRepository
 	messagePublisher interfaces.AuthEvents
-	userClient       pb.UserServiceClient
+	userClient       user.UserServiceClient
 }
 
 // NewAuthService creates a new instance of AuthService
@@ -39,15 +38,15 @@ func NewAuthService(authRepository interfaces.AuthRepository, messagePublisher i
 func (s *AuthService) Login(ctx context.Context, loginRequest param.LoginRequest) (param.LoginResponse, error) {
 
 	//???????
-	protoReq := mapper.ToProtoGetUserRequest(loginRequest.Email)
+	protoReq := mapper.ToProtoGetUserRequest(loginRequest)
 
-	userResp, err := s.userClient.GetUser(ctx, protoReq)
+	userResp, err := s.userClient.GetUserByEmail(ctx, protoReq)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "could not get user: %v", err)
+		return param.LoginResponse{}, status.Errorf(codes.Internal, "could not get user: %v", err)
 	}
 
 	//?????
-	paramUser := mapper.ToDTOGetUserResponse(protoResp)
+	paramUser := mapper.ToParamGetUserResponse(userResp)
 
 	//* get user data from database and compare passwords
 	// user, err := s.authRepository.FindByUserEmail(ctx, loginRequest.Email)
@@ -56,30 +55,30 @@ func (s *AuthService) Login(ctx context.Context, loginRequest param.LoginRequest
 	// }
 
 	//* Validate the password (compare hashed password with provided password)
-	if !isValidPassword(loginRequest.Password, string(user.PasswordHash)) {
+	if !isValidPassword(loginRequest.Password, string(paramUser.Password)) {
 		return param.LoginResponse{}, errors.New("invalid credentials")
 	}
 
 	//* Generate tokens using the utils package
-	accessToken, err := utils.GenerateAccessToken(user.ID)
+	accessToken, err := utils.GenerateAccessToken(paramUser.Id)
 	if err != nil {
 		return param.LoginResponse{}, err
 	}
 
 	// Optionally, generate a refresh token as well
-	refreshToken, err := utils.GenerateRefreshToken(user.ID)
+	refreshToken, err := utils.GenerateRefreshToken(paramUser.Id)
 	if err != nil {
 		return param.LoginResponse{}, err
 	}
 
-	tokens := &entities.TokenPair{
-		AccessToken:  entities.AccessToken{Token: accessToken, ExpiresAt: time.Now().Add(24 * time.Hour)},
-		RefreshToken: entities.RefreshToken{Token: refreshToken, ExpiresAt: time.Now().Add(7 * 24 * time.Hour)},
+	tokens := &entities.Token{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
 	}
 
 	s.authRepository.SaveToken(ctx, tokens)
 
-	return param.LoginResponse{UserID: user.ID, TokenPair: param.TokenPair{AccessToken: accessToken, RefreshToken: refreshToken}}, nil
+	return param.LoginResponse{UserID: paramUser.Id, Tokens: param.Token{AccessToken: accessToken, RefreshToken: refreshToken}}, nil
 }
 
 // func (s *AuthService) convertTokens(userID string, tokenStrings ...string) []entities.TokenPair {
