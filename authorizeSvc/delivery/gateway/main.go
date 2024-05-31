@@ -1,7 +1,7 @@
 package main
 
 import (
-	"authorization-service/pb"
+	authz "authorization-service/pb"
 	"context"
 	"log"
 	"net/http"
@@ -13,7 +13,7 @@ import (
 func RunHTTPGateway(ctx context.Context, grpcEndpoint string) error {
 	mux := runtime.NewServeMux()
 	opts := []grpc.DialOption{grpc.WithInsecure()}
-	if err := pb.RegisterAuthorizationServiceHandlerFromEndpoint(ctx, mux, grpcEndpoint, opts); err != nil {
+	if err := authz.RegisterAuthorizationServiceHandlerFromEndpoint(ctx, mux, grpcEndpoint, opts); err != nil {
 		return err
 	}
 
