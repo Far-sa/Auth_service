@@ -33,6 +33,19 @@ func (r *RabbitMQAdapter) Close() {
 	}
 }
 
+func (r *RabbitMQAdapter) DeclareExchange(name, kind string) error {
+
+	return r.channel.ExchangeDeclare(
+		name,  // Name of the exchange
+		kind,  // Type of exchange (e.g., "fanout", "direct", "topic")
+		true,  // Durable (survives server restarts)
+		false, // Delete when unused
+		false, // Exclusive (only this connection can access)
+		false,
+		nil, // Arguments
+	)
+}
+
 func (r *RabbitMQAdapter) CreateQueue(queueName string) (amqp.Queue, error) {
 	return r.channel.QueueDeclare(
 		queueName, // name

@@ -203,32 +203,32 @@ Order Service (optional) subscribes to the PaymentProcessed event. Based on the 
 Certainly! Let's break down the best practices for using a hybrid communication approach (event-driven with RabbitMQ and message-driven with gRPC) for each of the specified services in an e-commerce app.
 
 1. Authentication Service
-gRPC:
 
+gRPC:
 Use Case: Real-time user authentication during login/signup.
 Reason: Authentication typically requires immediate response to verify credentials and issue tokens.
 Example: User login request from frontend service to Authentication Service.
-RabbitMQ:
 
+RabbitMQ:
 Use Case: Event-driven logging of authentication attempts for monitoring and analytics.
 Reason: Logging can be handled asynchronously and processed later without affecting user experience.
 Example: Publish events like user_logged_in, failed_login_attempt.
 
 2. Authorization Service
-gRPC:
 
+gRPC:
 Use Case: Real-time authorization checks for access control during API calls.
 Reason: Authorization decisions need to be quick to enforce security policies.
 Example: Service-to-service calls from Product Catalog, Cart, or Order Services to check user permissions.
-RabbitMQ:
 
+RabbitMQ:
 Use Case: Audit logging of authorization decisions.
 Reason: Audit logs are critical for security and compliance but can be processed asynchronously.
 Example: Publish events like access_granted, access_denied.
 
 3. Product Catalog Service
-gRPC:
 
+gRPC:
 Use Case: Fetching product details in real-time for user requests.
 Reason: Fast and efficient communication is needed to provide quick responses to user queries.
 Example: Real-time requests from frontend service to get product details.

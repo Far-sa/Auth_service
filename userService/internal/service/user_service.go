@@ -3,33 +3,26 @@ package service
 import (
 	"authentication-service/utils"
 	"context"
-	"log"
+	"encoding/json"
 	"time"
 	"user-service/internal/entity"
 	"user-service/internal/interfaces"
 	"user-service/internal/param"
+
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 type UserService struct {
-	userRepo  interfaces.UserRepository
-	messaging interfaces.UserEvents
+	userRepo       interfaces.UserRepository
+	eventPublisher interfaces.UserEvents
 }
 
-func NewUserService(userRepo interfaces.UserRepository, messaging interfaces.UserEvents) *UserService {
-	return &UserService{userRepo: userRepo, messaging: messaging}
+func NewUserService(userRepo interfaces.UserRepository, eventPublisher interfaces.UserEvents) *UserService {
+	return &UserService{userRepo: userRepo, eventPublisher: eventPublisher}
 }
 
 //! Event Consumption in User Service: The user service listens to the UserRegisteredEvent and creates a new entry
 //! in its user_profiles table. consume from "user_registered",   var event models.UserRegisteredEvent
-
-func (s *UserService) ListenForUserRequests() {
-	msgs, err := s.messaging.Consume("user_queue", "", false)
-	if err != nil {
-		log.Fatalf("Failed to start consuming messages: %v", err)
-	}
-	_ = msgs
-
-}
 
 func (s *UserService) Register(ctx context.Context, req param.RegisterRequest) (param.RegisterResponse, error) {
 	// Hash the password
@@ -49,23 +42,30 @@ func (s *UserService) Register(ctx context.Context, req param.RegisterRequest) (
 		CreatedAt:   time.Now(),
 	}
 
-	//!
-	// body, err := json.Marshal(userRequest)
-	// if err != nil {
-	// 	return err
-	// }
-
 	// Save user to the database (pseudo-code, replace with actual DB code)
 	createdUser, cErr := s.userRepo.CreateUser(ctx, userRequest)
 	if cErr != nil {
 		return param.RegisterResponse{}, cErr
 	}
 
-	//* Publish the user data to the User Service
-	// err = s.messagePublisher.Publish(ctx, "auth_exchange", "auth_to_user_key", amqp.Publishing{Body: body})
-	// if err != nil {
-	// 	return err
-	// }
+	data, err := json.Marshal(createdUser)
+	if err != nil {
+		return param.RegisterResponse{}, err
+	}
+
+	//TODO publish just user id
+	xErr := s.eventPublisher.DeclareExchange("user_events_exchange", "topic")
+	if xErr != nil {
+		return param.RegisterResponse{}, xErr
+	}
+
+	pErr := s.eventPublisher.Publish(ctx, "user_events_exchange", "user.created", amqp.Publishing{
+		ContentType: "application/json",
+		Body:        data,
+	})
+	if pErr != nil {
+		return param.RegisterResponse{}, pErr
+	}
 
 	return param.RegisterResponse{User: param.UserInfo{ID: createdUser.ID, PhoneNumber: createdUser.PhoneNumber,
 		Email: createdUser.Email, FullName: createdUser.Username}}, nil
@@ -93,7 +93,29 @@ func (s *UserService) GetUser(ctx context.Context, userID string) (param.UserPro
 }
 
 //!!!
+//* publishUserIDEvent publishes an event with the user ID
+// func (s *UserService) publishUserIDEvent(ctx context.Context, userID string) error {
+//     const exchangeName = "user_events_exchange"
+//     const routingKey = "user.created"
 
+//     // Declare the exchange if not already declared
+//     err := s.eventPublisher.DeclareExchange(exchangeName, "topic")
+//     if err != nil {
+//         return fmt.Errorf("failed to declare exchange: %w", err)
+//     }
+
+//     // Publish the event
+//     err = s.eventPublisher.Publish(ctx, exchangeName, routingKey, amqp.Publishing{
+//         ContentType: "application/json",
+//         Body:        []byte(fmt.Sprintf(`{"id":"%s"}`, userID)),
+//     })
+//     if err != nil {
+//         return fmt.Errorf("failed to publish event: %w", err)
+//     }
+
+//     return nil
+// }
+//!
 // func (s *UserService) StartListening() {
 // 	// Listen for registration messages
 // 	go s.listenForRegistration()
