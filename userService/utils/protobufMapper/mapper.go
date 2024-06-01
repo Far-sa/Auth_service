@@ -55,3 +55,17 @@ func ToPbRegisterResponse(u param.RegisterResponse) *user.RegisterResponse {
 		Message: u.User.Email,
 	}
 }
+
+func PbToParamGetUserByEmail(req *user.GetUserByEmailRequest) param.GetUserByEmailRequest {
+	return param.GetUserByEmailRequest{
+		Email: req.Email,
+	}
+}
+
+func ToPbGetUserByEmail(u param.UserInfo) *user.GetUserByEmailResponse {
+	return &user.GetUserByEmailResponse{
+		UserId: u.ID,
+		Email:  u.Email,
+		Name:   u.FullName,
+	}
+}

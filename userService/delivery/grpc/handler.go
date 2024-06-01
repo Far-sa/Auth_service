@@ -46,7 +46,7 @@ func (h *grpcHandler) GetUser(ctx context.Context, req *user.GetUserRequest) (*u
 	return resp, nil
 }
 
-func (s *grpcHandler) UpdateUser(ctx context.Context, req *user.UpdateUserRequest) (*user.UpdateUserResponse, error) {
+func (h *grpcHandler) UpdateUser(ctx context.Context, req *user.UpdateUserRequest) (*user.UpdateUserResponse, error) {
 	// Implement user update logic
 	// Publish event to RabbitMQ (example)
 
@@ -54,9 +54,19 @@ func (s *grpcHandler) UpdateUser(ctx context.Context, req *user.UpdateUserReques
 	return &user.UpdateUserResponse{Success: true}, nil
 }
 
-func (s *grpcHandler) GetUserByEmail(ctx context.Context, req *user.GetUserByEmailRequest) (*user.GetUserByEmailResponse, error) {
+func (h *grpcHandler) GetUserByEmail(ctx context.Context, req *user.GetUserByEmailRequest) (*user.GetUserByEmailResponse, error) {
 
-	panic("not implemented")
+	paramReq := mapper.PbToParamGetUserByEmail(req)
+
+	user, err := h.userService.GetUserByEmail(ctx, paramReq.Email)
+	if err != nil {
+		return nil, err
+	}
+
+	//TODO update param for user response
+	resp := mapper.ToPbGetUserByEmail(user)
+
+	return resp, nil
 }
 
 // func (s *grpcServer) Start() {

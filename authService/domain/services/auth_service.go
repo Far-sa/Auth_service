@@ -48,7 +48,7 @@ func (s *AuthService) Login(ctx context.Context, loginRequest param.LoginRequest
 	//?????
 	paramUser := mapper.ToParamGetUserResponse(userResp)
 
-	//* get user data from database and compare passwords
+	//* get user data from own database and compare passwords
 	// user, err := s.authRepository.FindByUserEmail(ctx, loginRequest.Email)
 	// if err != nil {
 	// 	return param.LoginResponse{}, err
@@ -103,7 +103,6 @@ func generateCorrelationID() string {
 	// Implement a method to generate a unique correlation ID
 	return "some-unique-correlation-id"
 }
-
 
 //!!
 

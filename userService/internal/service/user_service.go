@@ -71,13 +71,13 @@ func (s *UserService) Register(ctx context.Context, req param.RegisterRequest) (
 		Email: createdUser.Email, FullName: createdUser.Username}}, nil
 }
 
-func (s *UserService) GetUserByEmail(ctx context.Context, Email string) (param.UserProfileResponse, error) {
+func (s *UserService) GetUserByEmail(ctx context.Context, Email string) (param.UserInfo, error) {
 	user, err := s.userRepo.FindUserByEmail(ctx, Email)
 	if err != nil {
-		return param.UserProfileResponse{}, nil
+		return param.UserInfo{}, nil
 	}
 
-	return param.UserProfileResponse{UserProfile: entity.UserProfile{Email: user.Email}}, nil
+	return param.UserInfo{ID: user.ID, Email: user.Email, FullName: user.FullName}, nil
 }
 
 func (s *UserService) GetUser(ctx context.Context, userID string) (param.UserProfileResponse, error) {

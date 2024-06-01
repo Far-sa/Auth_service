@@ -9,7 +9,7 @@ type GetUser struct {
 	UserID string `json:"user_id"`
 }
 
-type GetUserByEmail struct {
+type GetUserByEmailRequest struct {
 	Email string `json:"email"`
 }
 

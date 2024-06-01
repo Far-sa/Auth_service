@@ -32,7 +32,7 @@ func (h *UserHandler) SignUp(c echo.Context) error {
 }
 
 func (h *UserHandler) GetUserByEmail(c echo.Context) error {
-	var userReq param.GetUserByEmail
+	var userReq param.GetUserByEmailRequest
 	if err := c.Bind(&userReq); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
