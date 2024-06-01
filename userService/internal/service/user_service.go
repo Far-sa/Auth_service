@@ -1,8 +1,10 @@
 package service
 
 import (
+	"authentication-service/utils"
 	"context"
 	"log"
+	"time"
 	"user-service/internal/entity"
 	"user-service/internal/interfaces"
 	"user-service/internal/param"
@@ -29,8 +31,48 @@ func (s *UserService) ListenForUserRequests() {
 
 }
 
+func (s *UserService) Register(ctx context.Context, req param.RegisterRequest) (param.RegisterResponse, error) {
+	// Hash the password
+	passwordHash, err := utils.HashPassword(req.Password)
+	if err != nil {
+		return param.RegisterResponse{}, err
+	}
+
+	// Create a user request to send to the User Service
+	userRequest := &entity.UserProfile{
+		ID:          "",
+		Username:    req.UserName,
+		Email:       req.Email,
+		Password:    passwordHash,
+		FullName:    req.FullName,
+		PhoneNumber: req.PhoneNumber,
+		CreatedAt:   time.Now(),
+	}
+
+	//!
+	// body, err := json.Marshal(userRequest)
+	// if err != nil {
+	// 	return err
+	// }
+
+	// Save user to the database (pseudo-code, replace with actual DB code)
+	createdUser, cErr := s.userRepo.CreateUser(ctx, userRequest)
+	if cErr != nil {
+		return param.RegisterResponse{}, cErr
+	}
+
+	//* Publish the user data to the User Service
+	// err = s.messagePublisher.Publish(ctx, "auth_exchange", "auth_to_user_key", amqp.Publishing{Body: body})
+	// if err != nil {
+	// 	return err
+	// }
+
+	return param.RegisterResponse{User: param.UserInfo{ID: createdUser.ID, PhoneNumber: createdUser.PhoneNumber,
+		Email: createdUser.Email, FullName: createdUser.Username}}, nil
+}
+
 func (s *UserService) GetUserByEmail(ctx context.Context, Email string) (param.UserProfileResponse, error) {
-	user, err := s.userRepo.FindByUsernameOrEmail(ctx, Email)
+	user, err := s.userRepo.FindUserByEmail(ctx, Email)
 	if err != nil {
 		return param.UserProfileResponse{}, nil
 	}
@@ -38,8 +80,8 @@ func (s *UserService) GetUserByEmail(ctx context.Context, Email string) (param.U
 	return param.UserProfileResponse{UserProfile: entity.UserProfile{Email: user.Email}}, nil
 }
 
-func (s *UserService) GetUser(userID string) (param.UserProfileResponse, error) {
-	userDetail, err := s.userRepo.GetUserByID(userID)
+func (s *UserService) GetUser(ctx context.Context, userID string) (param.UserProfileResponse, error) {
+	userDetail, err := s.userRepo.GetUserByID(ctx, userID)
 	if err != nil {
 		return param.UserProfileResponse{}, err
 	}

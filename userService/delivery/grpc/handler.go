@@ -22,7 +22,7 @@ func (s *grpcHandler) GetUser(ctx context.Context, req *user.GetUserRequest) (*u
 	//* map proto to param
 	pb := mapper.PbToParamGetUserRequest(req)
 
-	user, err := s.userService.GetUser(pb.UserID)
+	user, err := s.userService.GetUser(ctx, pb.UserID)
 	if err != nil {
 		return nil, err
 	}

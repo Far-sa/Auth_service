@@ -104,42 +104,7 @@ func generateCorrelationID() string {
 	return "some-unique-correlation-id"
 }
 
-// TODO update method to return message
-// func (s *AuthService) Register(ctx context.Context, registerRequest param.RegisterRequest) error {
-// 	// Hash the password
-// 	passwordHash, err := utils.HashPassword(registerRequest.Password)
-// 	if err != nil {
-// 		return err
-// 	}
 
-// 	// Create a user request to send to the User Service
-// 	userRequest := &entities.User{
-// 		ID:           "",
-// 		Username:     registerRequest.Username,
-// 		Email:        registerRequest.Email,
-// 		PasswordHash: passwordHash,
-// 		CreatedAt:    time.Now(),
-// 	}
-
-// 	body, err := json.Marshal(userRequest)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	// Save user to the database (pseudo-code, replace with actual DB code)
-// 	sErr := s.authRepository.SaveUser(ctx, userRequest)
-// 	if sErr != nil {
-// 		return sErr
-// 	}
-
-// 	// Publish the user data to the User Service
-// 	err = s.messagePublisher.Publish(ctx, "auth_exchange", "auth_to_user_key", amqp.Publishing{Body: body})
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	return errors.New("no response from user service")
-// }
 //!!
 
 // func (s *AuthService) fetchUserData(ctx context.Context, usernameOrEmail string) (param.UserResponse, error) {

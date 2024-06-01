@@ -9,13 +9,16 @@ import (
 )
 
 type UserService interface {
-	GetUser(userID string) (param.UserProfileResponse, error)
+	GetUser(ctx context.Context, userID string) (param.UserProfileResponse, error)
 	GetUserByEmail(ctx context.Context, email string) (param.UserProfileResponse, error)
 }
 
 type UserRepository interface {
-	GetUserByID(userID string) (entity.UserProfile, error)
-	FindByUsernameOrEmail(ctx context.Context, usernameOrEmail string) (*entity.UserProfile, error)
+	GetUserByID(ctx context.Context, userID string) (*entity.UserProfile, error)
+	FindUserByEmail(ctx context.Context, Email string) (*entity.UserProfile, error)
+	CreateUser(ctx context.Context, user *entity.UserProfile) (*entity.UserProfile, error)
+	// UpdateUser(ctx context.Context, user *entity.UserProfile) error
+	// DeleteUser(ctx context.Context, userID string) error
 }
 type UserEvents interface {
 	DeclareExchange(name, kind string) error

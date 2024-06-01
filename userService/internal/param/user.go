@@ -41,3 +41,29 @@ type UserRegisteredEvent struct {
 type UserProfileResponse struct {
 	UserProfile entity.UserProfile `json:"user_profile"`
 }
+
+type RegisterRequest struct {
+	FullName    string `json:"full_name"`
+	UserName    string `json:"username"`
+	Email       string `json:"email"`
+	Password    string `json:"password"`
+	PhoneNumber string `json:"phone_number"`
+}
+
+type RegisterResponse struct {
+	User UserInfo `json:"user"`
+}
+
+type UserInfo struct {
+	ID          string `json:"id"`
+	PhoneNumber string `json:"phone_number"`
+	Email       string `json:"email"`
+	FullName    string `json:"full_name"`
+}
+
+type ProfileRequest struct {
+	UserID uint `json:"user_id"`
+}
+type ProfileResponse struct {
+	Name string `json:"name"`
+}
