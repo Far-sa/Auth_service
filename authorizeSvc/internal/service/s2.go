@@ -1,15 +1,19 @@
 package service
 
 import (
+	"authorization-service/internal/entity"
 	"authorization-service/internal/interfaces"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 )
+
+const DefaultRole = "User"
 
 type AuthzService struct {
 	roleRepo interfaces.RoleRepository
@@ -22,14 +26,42 @@ func NewAuthzService(roleRepo interfaces.RoleRepository, consumer interfaces.Rol
 }
 
 func (s *AuthzService) AssignRole(ctx context.Context, userID string) error {
-	// Logic to assign role to user
-	role := "user"
-	err := s.roleRepo.AssignRole(ctx, userID, role)
+	//TODO  get role from db
+	role, err := s.roleRepo.GetRoleByUserID(userID)
 	if err != nil {
-		return err
+		if errors.Is(err, interfaces.ErrRoleNotFound) {
+			log.Printf("No role found for user %s, assigning default role", userID)
+			role = entity.Role{Name: DefaultRole}
+		} else {
+			log.Printf("Failed to assign role: %v", err)
+			return err
+		}
 	}
 
-	log.Printf("Assigned role to user %s", userID)
+	// log.Printf("Assigned role %s to user %s with email %s", role.Name, user.ID, user.Email)
+	fmt.Println("role is :", role)
+	return nil
+
+	//*  Logic to assign role to user
+	// role := "user"
+	// err := s.roleRepo.AssignRole(ctx, userID, role)
+	// if err != nil {
+	// 	return err
+	// }
+
+	// log.Printf("Assigned role to user %s", userID)
+	// return nil
+}
+
+//TODO use param
+
+func (s *AuthzService) UpdateUserRole(userID string, newRole entity.Role) error {
+	err := s.roleRepo.UpdateRole(userID, newRole)
+	if err != nil {
+		log.Printf("Failed to update role for user %s: %v", userID, err)
+		return err
+	}
+	log.Printf("Updated role for user %s to %s", userID, newRole.Name)
 	return nil
 }
 

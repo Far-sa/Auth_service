@@ -1,6 +1,7 @@
 package httpHandler
 
 import (
+	"authorization-service/internal/entity"
 	"authorization-service/internal/interfaces"
 	"context"
 	"net/http"
@@ -23,6 +24,22 @@ func (h *authzHandler) AssignRole(c echo.Context) error {
 	// role := c.Param("role")
 
 	err := h.authzService.AssignRole(c.Request().Context(), username)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	return c.NoContent(http.StatusOK)
+}
+
+func (h *authzHandler) UpdateRole(c echo.Context) error {
+	userID := c.Param("userID")
+
+	var newRole entity.Role
+	if err := c.Bind(&newRole); err != nil {
+		return c.JSON(http.StatusBadRequest, "Invalid input")
+	}
+
+	err := h.authzService.UpdateUserRole(userID, newRole)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}

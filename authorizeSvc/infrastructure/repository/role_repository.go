@@ -1,7 +1,10 @@
 package repository
 
 import (
+	"authorization-service/internal/entity"
+	"authorization-service/internal/interfaces"
 	"context"
+	"errors"
 	"fmt"
 	"log"
 )
@@ -45,5 +48,26 @@ func (r *DB) UpdateUserRoles(ctx context.Context, userID string, role string) er
 		err = fmt.Errorf("error updating roles for user %s: %w", userID, err)
 		return err
 	}
+	return nil
+}
+
+func (r *DB) GetRoleByUserID(userID string) (entity.Role, error) {
+	// Implement the logic to fetch role from the database using userID
+	// This is a mock implementation
+	if userID == "admin" {
+		return entity.Role{ID: 1, Name: "Admin"}, nil
+	} else if userID == "user" {
+		return entity.Role{ID: 2, Name: "User"}, nil
+	}
+	return entity.Role{}, interfaces.ErrRoleNotFound
+}
+
+func (r *DB) UpdateRole(userID string, newRole entity.Role) error {
+	// Implement the logic to update the role in the database
+	// This is a mock implementation
+	if userID == "" || newRole.Name == "" {
+		return errors.New("invalid input")
+	}
+	// Assume we update the role successfully
 	return nil
 }
