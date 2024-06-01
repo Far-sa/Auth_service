@@ -11,6 +11,7 @@ import (
 type UserService interface {
 	GetUser(ctx context.Context, userID string) (param.UserProfileResponse, error)
 	GetUserByEmail(ctx context.Context, email string) (param.UserProfileResponse, error)
+	Register(ctx context.Context, req param.RegisterRequest) (param.RegisterResponse, error)
 }
 
 type UserRepository interface {

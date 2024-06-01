@@ -8,7 +8,7 @@ import (
 	"path"
 	standard_runtime "runtime"
 
-	"user-service/delivery/gateway"
+	"user-service/cmd/gateway"
 	grpcHandler "user-service/delivery/grpc"
 	"user-service/infrastructure/database"
 	"user-service/infrastructure/messaging"

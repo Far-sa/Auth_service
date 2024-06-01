@@ -3,7 +3,6 @@ package main
 import (
 	"authentication-service/infrastructure/database/migrator"
 	"log"
-	"net/http"
 	"path"
 	standard_runtime "runtime"
 
@@ -13,6 +12,7 @@ import (
 	"user-service/infrastructure/repository"
 	"user-service/internal/service"
 
+	"github.com/labstack/echo/v4"
 	_ "github.com/lib/pq"
 )
 
@@ -46,10 +46,12 @@ func main() {
 
 	userHandler := httpHandler.NewHTTPAuthHandler(userSvc)
 
-	http.HandleFunc("/", userHandler.GetUserByEmail)
+	e := echo.New()
+	e.POST("/register", userHandler.SignUp)
+	e.GET("/getUser", userHandler.GetUserByEmail)
 
 	log.Println("HTTP server is running on port 8081")
-	if err := http.ListenAndServe(":8081", nil); err != nil {
+	if err := e.Start(":8081"); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
 
