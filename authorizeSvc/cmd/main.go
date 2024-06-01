@@ -1,99 +1,126 @@
 package main
 
-// import (
-// 	delivery "authorization-service/delivery/gprc"
-// 	"authorization-service/infrastructure/database"
-// 	"authorization-service/infrastructure/database/migrator"
-// 	"authorization-service/infrastructure/messaging"
-// 	"authorization-service/infrastructure/messaging/rabbitmq"
-// 	"authorization-service/infrastructure/repository"
-// 	"authorization-service/internal/service"
-// 	"path"
-// 	standard_runtime "runtime"
-// 	"user-service/delivery/gateway"
+import (
+	"authorization-service/cmd/gateway"
+	grpcHandler "authorization-service/delivery/gprc"
+	httpHandler "authorization-service/delivery/http"
+	"authorization-service/infrastructure/database"
+	"authorization-service/infrastructure/database/migrator"
+	"authorization-service/infrastructure/messaging"
+	"authorization-service/infrastructure/messaging/rabbitmq"
+	"authorization-service/infrastructure/repository"
+	"authorization-service/internal/service"
+	authz "authorization-service/pb"
+	"context"
+	"net"
+	"path"
+	standard_runtime "runtime"
 
-// 	"context"
-// 	"log"
-// 	"net"
-// 	"os"
-// 	"os/signal"
-// 	"syscall"
-// )
+	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
-// func main() {
+	"github.com/labstack/echo/v4"
+	"google.golang.org/grpc"
+)
 
-// 	//TODO add config to load them from environment variable
-// 	lis, err := net.Listen("tcp", ":50051")
-// 	if err != nil {
-// 		log.Fatalf("Failed to listen: %v", err)
-// 	}
+func main() {
 
-// 	dsn := "postgres://postgres:password@localhost:5432/authz_db?sslmode=disable"
-// 	db, err := database.NewSQLDB(dsn)
-// 	if err != nil {
-// 		log.Fatalf("Failed to connect to database: %v", err)
-// 	}
+	//TODO add config to load them from environment variable
 
-// 	_, filename, _, _ := standard_runtime.Caller(0)
-// 	dir := path.Join(path.Dir(filename), "../infrastructure/database/migrations")
-// 	// Create a new migrator instance.
-// 	migrator, err := migrator.NewMigrator(db.Conn(), dir)
-// 	if err != nil {
-// 		log.Fatalf("Failed to create migrator: %v", err)
-// 	}
+	dsn := "postgres://postgres:password@localhost:5432/authz_db?sslmode=disable"
+	db, err := database.NewSQLDB(dsn)
+	if err != nil {
+		log.Fatalf("Failed to connect to database: %v", err)
+	}
 
-// 	// Apply all up migrations.
-// 	if err := migrator.Up(); err != nil {
-// 		log.Fatalf("Failed to migrate up: %v", err)
-// 	}
+	_, filename, _, _ := standard_runtime.Caller(0)
+	dir := path.Join(path.Dir(filename), "../infrastructure/database/migrations")
+	// Create a new migrator instance.
+	migrator, err := migrator.NewMigrator(db.Conn(), dir)
+	if err != nil {
+		log.Fatalf("Failed to create migrator: %v", err)
+	}
 
-// 	// Initialize repository, service, and handler
-// 	userRepo := repository.NewRepository(db)
+	// Apply all up migrations.
+	if err := migrator.Up(); err != nil {
+		log.Fatalf("Failed to migrate up: %v", err)
+	}
 
-// 	amqpUrl := "amqp://guest:guest@rabbitmq:5672/"
-// 	rabbitAdapter, err := rabbitmq.NewRabbitMQAdapter(amqpUrl)
-// 	if err != nil {
-// 		log.Fatalf("Failed to create RabbitMQ adapter: %v", err)
-// 	}
-// 	defer rabbitAdapter.Close()
+	// Initialize repository, service, and handler
+	userRepo := repository.NewRepository(db)
 
-// 	consumer, err := messaging.NewRabbitMQConsumer(rabbitAdapter, "user_authenticated_queue", "user.authenticated", "auth_exchange", nil)
-// 	if err != nil {
-// 		log.Fatalf("Failed to create RabbitMQ consumer: %v", err)
-// 	}
+	amqpUrl := "amqp://guest:guest@rabbitmq:5672/"
+	rabbitAdapter, err := rabbitmq.NewRabbitMQAdapter(amqpUrl)
+	if err != nil {
+		log.Fatalf("Failed to create RabbitMQ adapter: %v", err)
+	}
+	defer rabbitAdapter.Close()
 
-// 	authzService := service.NewAuthorizationService(userRepo, consumer)
+	consumer, err := messaging.NewRabbitMQConsumer(rabbitAdapter, "user_authenticated_queue", "user.authenticated", "auth_exchange", nil)
+	if err != nil {
+		log.Fatalf("Failed to create RabbitMQ consumer: %v", err)
+	}
 
-// 	ctx, cancel := context.WithCancel(context.Background())
-// 	defer cancel()
+	authzService := service.NewAuthorizationService(userRepo, consumer)
 
-// 	go func() {
-// 		if err := authzService.Start(); err != nil {
-// 			log.Printf("Authorization service stopped with error: %v", err)
-// 			cancel()
-// 		}
-// 	}()
+	// Start gRPC server in a separate goroutine
+	go func() {
+		authzHandler := grpcHandler.NewGRPCHandler(authzService)
 
-// 	// Start the authorization service
-// 	authzhandelr := delivery.NewGRPCServer(authzService)
-// 	authzhandelr.Serve()
+		grpcServer := grpc.NewServer()
+		authz.RegisterAuthorizationServiceServer(grpcServer, authzHandler)
 
-// 	if err := gateway.RunHTTPGateway(ctx, lis.Addr().String()); err != nil {
-// 		log.Fatalf("Failed to run gRPC-Gateway: %v", err)
-// 	}
+		lis, err := net.Listen("tcp", ":50051")
+		if err != nil {
+			log.Fatalf("Failed to listen: %v", err)
+		}
 
-// 	// Handle OS signals for graceful shutdown
-// 	signalChan := make(chan os.Signal, 1)
-// 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
+		if err := grpcServer.Serve(lis); err != nil {
+			log.Fatalf("Failed to serve gRPC server: %v", err)
+		}
+	}()
 
-// 	select {
-// 	case <-ctx.Done():
-// 		log.Println("Shutdown initiated")
-// 	case sig := <-signalChan:
-// 		log.Printf("Received signal: %v. Shutting down...", sig)
-// 		cancel()
-// 	}
+	// Start gRPC-Gateway in a separate goroutine
+	go func() {
+		ctx := context.Background()
+		ctx, cancel := context.WithCancel(ctx)
+		defer cancel()
 
-// 	// Perform any cleanup tasks here if necessary
-// 	log.Println("Server gracefully stopped")
-// }
+		if err := gateway.RunHTTPGateway(ctx, ":50051"); err != nil {
+			log.Fatalf("Failed to run gRPC-Gateway: %v", err)
+		}
+	}()
+
+	// Start HTTP server in the main goroutine
+	authzHandler := httpHandler.NewHTTPAuthzHandler(authzService)
+
+	e := echo.New()
+	e.POST("/register", authzHandler.AssignRole)
+	e.GET("/getUser", authzHandler.CheckPermission)
+
+	log.Println("HTTP server is running on port 8080")
+	if err := e.Start(":8080"); err != nil {
+		log.Fatalf("failed to serve: %v", err)
+	}
+
+	// Handle OS signals for graceful shutdown
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
+
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	select {
+	case <-ctx.Done():
+		log.Println("Shutdown initiated")
+	case sig := <-signalChan:
+		log.Printf("Received signal: %v. Shutting down...", sig)
+		cancel()
+	}
+
+	// Perform any cleanup tasks here if necessary
+	log.Println("Server gracefully stopped")
+}
