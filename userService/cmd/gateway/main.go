@@ -18,5 +18,5 @@ func RunHTTPGateway(ctx context.Context, grpcEndpoint string) error {
 	}
 
 	log.Println("Serving gRPC-Gateway on http://localhost:8081")
-	return http.ListenAndServe(":8080", mux)
+	return http.ListenAndServe(":8081", mux)
 }

@@ -85,8 +85,8 @@ func main() {
 	e.POST("/register", userHandler.SignUp)
 	e.GET("/getUser", userHandler.GetUserByEmail)
 
-	log.Println("HTTP server is running on port 8081")
-	if err := e.Start(":8081"); err != nil {
+	log.Println("HTTP server is running on port 8080")
+	if err := e.Start(":8080"); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
 

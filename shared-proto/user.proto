@@ -25,13 +25,13 @@ service UserService {
 
   rpc GetUserByEmail(GetUserByEmailRequest) returns (GetUserByEmailResponse){
     option (google.api.http) = {
-      get : "/v1/getuserbyemail/{email}"
+      get : "/v1/users/getuserbyemail/{email}"
     };
   };
 
   rpc CreateUser(RegisterRequest) returns (RegisterResponse) {
     option (google.api.http) = {
-      post : "/v1/register"
+      post : "/v1/users/register"
       body : "*"
     };
   }
