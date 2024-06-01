@@ -57,7 +57,7 @@ func main() {
 		grpcServer := grpc.NewServer()
 		user.RegisterUserServiceServer(grpcServer, userHandler)
 
-		lis, err := net.Listen("tcp", ":50053")
+		lis, err := net.Listen("tcp", ":50051")
 		if err != nil {
 			log.Fatalf("Failed to listen: %v", err)
 		}
@@ -73,7 +73,7 @@ func main() {
 		ctx, cancel := context.WithCancel(ctx)
 		defer cancel()
 
-		if err := gateway.RunHTTPGateway(ctx, ":50053"); err != nil {
+		if err := gateway.RunHTTPGateway(ctx, ":50051"); err != nil {
 			log.Fatalf("Failed to run gRPC-Gateway: %v", err)
 		}
 	}()

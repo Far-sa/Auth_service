@@ -1,4 +1,4 @@
-package grpcServer
+package grpcHandler
 
 import (
 	"authentication-service/interfaces"

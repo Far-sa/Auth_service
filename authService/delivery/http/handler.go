@@ -1,10 +1,11 @@
-package httpServer
+package httpHandler
 
 import (
 	"authentication-service/domain/param"
 	"authentication-service/interfaces"
-	"encoding/json"
 	"net/http"
+
+	"github.com/labstack/echo/v4"
 )
 
 type AuthHandler struct {
@@ -15,19 +16,17 @@ func NewHTTPAuthHandler(authService interfaces.AuthenticationService) *AuthHandl
 	return &AuthHandler{authService: authService}
 }
 
-func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
+func (h *AuthHandler) Login(c echo.Context) error {
 	var userReq param.LoginRequest
-	if err := json.NewDecoder(r.Body).Decode(&userReq); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+
+	if err := c.Bind(&userReq); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	resp, err := h.authService.Login(r.Context(), userReq)
+	resp, err := h.authService.Login(c.Request().Context(), userReq)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(resp)
+	return c.JSON(http.StatusOK, resp)
 }
