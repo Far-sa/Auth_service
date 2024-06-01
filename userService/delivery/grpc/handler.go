@@ -17,12 +17,26 @@ func New(userService interfaces.UserService) *grpcHandler {
 	return &grpcHandler{userService: userService}
 }
 
-func (s *grpcHandler) GetUser(ctx context.Context, req *user.GetUserRequest) (*user.GetUserResponse, error) {
+func (h *grpcHandler) CreateUser(ctx context.Context, req *user.RegisterRequest) (*user.RegisterResponse, error) {
+	//* map proto to param
+	pb := mapper.PbToParamRegisterRequest(req)
+
+	user, err := h.userService.Register(ctx, pb)
+	if err != nil {
+		return nil, err
+	}
+
+	//* map param to proto
+	resp := mapper.ToPbRegisterResponse(user)
+	return resp, nil
+}
+
+func (h *grpcHandler) GetUser(ctx context.Context, req *user.GetUserRequest) (*user.GetUserResponse, error) {
 
 	//* map proto to param
 	pb := mapper.PbToParamGetUserRequest(req)
 
-	user, err := s.userService.GetUser(ctx, pb.UserID)
+	user, err := h.userService.GetUser(ctx, pb.UserID)
 	if err != nil {
 		return nil, err
 	}

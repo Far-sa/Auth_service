@@ -1,14 +1,12 @@
-package main
+package grpcServer
 
 import (
 	"authentication-service/infrastructure/database/migrator"
-	"context"
 	"log"
 	"net"
 	"path"
 	standard_runtime "runtime"
 
-	"user-service/cmd/gateway"
 	grpcHandler "user-service/delivery/grpc"
 	"user-service/infrastructure/database"
 	"user-service/infrastructure/messaging"
@@ -21,7 +19,7 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
-func main() {
+func grpcServer() {
 	lis, err := net.Listen("tcp", ":50053")
 
 	if err != nil {
@@ -68,10 +66,5 @@ func main() {
 			log.Fatalf("Failed to serve gRPC server: %v", err)
 		}
 	}()
-
-	ctx := context.Background()
-	if err := gateway.RunHTTPGateway(ctx, lis.Addr().String()); err != nil {
-		log.Fatalf("Failed to run gRPC-Gateway: %v", err)
-	}
 
 }

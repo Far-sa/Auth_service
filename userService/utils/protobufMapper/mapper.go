@@ -41,3 +41,17 @@ func ToPbUserProfileResponse(u param.UserProfileResponse) *user.GetUserResponse 
 		CreatedAt: timestamppb.New(createdAt),
 	}
 }
+
+func PbToParamRegisterRequest(req *user.RegisterRequest) param.RegisterRequest {
+	return param.RegisterRequest{
+		UserName: req.Username,
+		Email:    req.Email,
+		Password: req.Password,
+	}
+}
+
+func ToPbRegisterResponse(u param.RegisterResponse) *user.RegisterResponse {
+	return &user.RegisterResponse{
+		Message: u.User.Email,
+	}
+}

@@ -1,4 +1,4 @@
-package main
+package httpServer
 
 import (
 	"authentication-service/infrastructure/database/migrator"
@@ -16,7 +16,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func main() {
+func HttpServer() {
 
 	dsn := "postgres://postgres:password@localhost:5432/user_db?sslmode=disable"
 	db, err := database.NewSQLDB(dsn)
