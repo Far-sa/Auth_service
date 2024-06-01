@@ -1,6 +1,9 @@
 package rabbitmq
 
 import (
+	"context"
+	"fmt"
+
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -9,16 +12,22 @@ type RabbitMQAdapter struct {
 	channel    *amqp.Channel
 }
 
-func NewRabbitMQAdapter(dsn string) (*RabbitMQAdapter, error) {
-	conn, err := amqp.Dial(dsn)
+func NewRabbitMQAdapter(url string) (*RabbitMQAdapter, error) {
+	conn, err := amqp.Dial(url)
 	if err != nil {
 		return nil, err
 	}
 
 	ch, err := conn.Channel()
 	if err != nil {
-		conn.Close()
 		return nil, err
+	}
+
+	// Enable publisher confirms (optional)
+	if err := ch.Confirm(false); err != nil {
+		ch.Close()   // Close the channel on Confirm error
+		conn.Close() // Also close the connection
+		return nil, fmt.Errorf("failed to enable publisher confirms: %w", err)
 	}
 
 	return &RabbitMQAdapter{connection: conn, channel: ch}, nil
@@ -46,7 +55,7 @@ func (r *RabbitMQAdapter) DeclareExchange(name, kind string) error {
 	)
 }
 
-func (r *RabbitMQAdapter) CreateQueue(queueName string) (amqp.Queue, error) {
+func (r *RabbitMQAdapter) CreateQueue(queueName string, durable, autodelete bool) (amqp.Queue, error) {
 	return r.channel.QueueDeclare(
 		queueName, // name
 		true,      // durable
@@ -67,20 +76,18 @@ func (r *RabbitMQAdapter) CreateBinding(queueName, routingKey, exchange string) 
 	)
 }
 
-func (r *RabbitMQAdapter) Publish(exchange, routingKey string, body []byte) error {
-	return r.channel.Publish(
-		exchange,   // exchange
-		routingKey, // routing key
-		false,      // mandatory
-		false,      // immediate
-		amqp.Publishing{
-			ContentType: "text/plain",
-			Body:        body,
-		},
+func (r *RabbitMQAdapter) Publish(ctx context.Context, exchange, routingKey string, options amqp.Publishing) error {
+	return r.channel.PublishWithContext(
+		ctx,
+		exchange,   // Name of the exchange
+		routingKey, // Routing key for message
+		false,      // Mandatory (if true, message is rejected if no queue is bound)
+		false,      // Immediate (if true, delivery happens now, or fails)
+		options,
 	)
 }
 
-func (r *RabbitMQAdapter) Consume(queueName string) (<-chan amqp.Delivery, error) {
+func (r *RabbitMQAdapter) Consume(queueName string, consumer string, autoAck bool) (<-chan amqp.Delivery, error) {
 	return r.channel.Consume(
 		queueName, // queue
 		"",        // consumer

@@ -22,7 +22,7 @@ func NewGRPCHandler(authService interfaces.AuthorizationService) *grpcHandler {
 func (s grpcHandler) AssignRole(ctx context.Context, req *authz.AssignRoleRequest) (*authz.AssignRoleResponse, error) {
 
 	//* proto to param
-	err := s.authService.AssignRole(ctx, req.Username, req.Role)
+	err := s.authService.AssignRole(ctx, req.UserId)
 	if err != nil {
 		return nil, err
 	}
@@ -31,17 +31,17 @@ func (s grpcHandler) AssignRole(ctx context.Context, req *authz.AssignRoleReques
 	return &authz.AssignRoleResponse{Message: "Role assigned successfully"}, nil
 }
 
-func (s grpcHandler) CheckPermission(ctx context.Context, req *authz.CheckPermissionRequest) (*authz.CheckPermissionResponse, error) {
+// func (s grpcHandler) CheckPermission(ctx context.Context, req *authz.CheckPermissionRequest) (*authz.CheckPermissionResponse, error) {
 
-	//*  proto to param
-	hasPermission, err := s.authService.CheckPermission(ctx, req.Username, req.Permission)
-	if err != nil {
-		return nil, err
-	}
-	//return &pb.CheckPermissionResponse{Has_permission: hasPermission}, nil
-	//* param to
-	return &authz.CheckPermissionResponse{HasPermission: hasPermission}, nil
-}
+// 	//*  proto to param
+// 	hasPermission, err := s.authService.CheckPermission(ctx, req.Username, req.Permission)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	//return &pb.CheckPermissionResponse{Has_permission: hasPermission}, nil
+// 	//* param to
+// 	return &authz.CheckPermissionResponse{HasPermission: hasPermission}, nil
+// }
 
 // func (s *grpcServer) Serve() {
 

@@ -20,9 +20,9 @@ func NewHTTPAuthzHandler(authzService interfaces.AuthorizationService) *authzHan
 
 func (h *authzHandler) AssignRole(c echo.Context) error {
 	username := c.Param("username")
-	role := c.Param("role")
+	// role := c.Param("role")
 
-	err := h.authzService.AssignRole(c.Request().Context(), username, role)
+	err := h.authzService.AssignRole(c.Request().Context(), username)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
@@ -30,17 +30,17 @@ func (h *authzHandler) AssignRole(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func (h *authzHandler) CheckPermission(c echo.Context) error {
-	username := c.Param("username")
-	permission := c.Param("permission")
+// func (h *authzHandler) CheckPermission(c echo.Context) error {
+// 	username := c.Param("username")
+// 	permission := c.Param("permission")
 
-	allowed, err := h.authzService.CheckPermission(c.Request().Context(), username, permission)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
+// 	allowed, err := h.authzService.CheckPermission(c.Request().Context(), username, permission)
+// 	if err != nil {
+// 		return c.JSON(http.StatusInternalServerError, err.Error())
+// 	}
 
-	return c.JSON(http.StatusOK, allowed)
-}
+// 	return c.JSON(http.StatusOK, allowed)
+// }
 
 func (h *authzHandler) HandleUserAuthenticatedEvent(ctx context.Context, message string) error {
 	// Handle the user authenticated event

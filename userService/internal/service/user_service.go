@@ -3,7 +3,7 @@ package service
 import (
 	"authentication-service/utils"
 	"context"
-	"encoding/json"
+	"fmt"
 	"time"
 	"user-service/internal/entity"
 	"user-service/internal/interfaces"
@@ -48,24 +48,29 @@ func (s *UserService) Register(ctx context.Context, req param.RegisterRequest) (
 		return param.RegisterResponse{}, cErr
 	}
 
-	data, err := json.Marshal(createdUser)
-	if err != nil {
-		return param.RegisterResponse{}, err
-	}
-
 	//TODO publish just user id
-	xErr := s.eventPublisher.DeclareExchange("user_events_exchange", "topic")
-	if xErr != nil {
-		return param.RegisterResponse{}, xErr
-	}
+	s.publishUserIDEvent(ctx, createdUser.ID)
 
-	pErr := s.eventPublisher.Publish(ctx, "user_events_exchange", "user.created", amqp.Publishing{
-		ContentType: "application/json",
-		Body:        data,
-	})
-	if pErr != nil {
-		return param.RegisterResponse{}, pErr
-	}
+	//* marshal user data
+	// data, err := json.Marshal(createdUser)
+	// if err != nil {
+	// 	return param.RegisterResponse{}, err
+	// }
+
+	//* Declare exchange and publish user as event
+
+	// xErr := s.eventPublisher.DeclareExchange("user_events_exchange", "topic")
+	// if xErr != nil {
+	// 	return param.RegisterResponse{}, xErr
+	// }
+
+	// pErr := s.eventPublisher.Publish(ctx, "user_events_exchange", "user.created", amqp.Publishing{
+	// 	ContentType: "application/json",
+	// 	Body:        data,
+	// })
+	// if pErr != nil {
+	// 	return param.RegisterResponse{}, pErr
+	// }
 
 	return param.RegisterResponse{User: param.UserInfo{ID: createdUser.ID, PhoneNumber: createdUser.PhoneNumber,
 		Email: createdUser.Email, FullName: createdUser.Username}}, nil
@@ -92,29 +97,30 @@ func (s *UserService) GetUser(ctx context.Context, userID string) (param.UserPro
 	return userInfo, nil
 }
 
-//!!!
-//* publishUserIDEvent publishes an event with the user ID
-// func (s *UserService) publishUserIDEvent(ctx context.Context, userID string) error {
-//     const exchangeName = "user_events_exchange"
-//     const routingKey = "user.created"
+// !!!
+// * publishUserIDEvent publishes an event with the user ID
+func (s *UserService) publishUserIDEvent(ctx context.Context, userID string) error {
+	const exchangeName = "user_events_exchange"
+	const routingKey = "user.created"
 
-//     // Declare the exchange if not already declared
-//     err := s.eventPublisher.DeclareExchange(exchangeName, "topic")
-//     if err != nil {
-//         return fmt.Errorf("failed to declare exchange: %w", err)
-//     }
+	// Declare the exchange if not already declared
+	err := s.eventPublisher.DeclareExchange(exchangeName, "topic")
+	if err != nil {
+		return fmt.Errorf("failed to declare exchange: %w", err)
+	}
 
-//     // Publish the event
-//     err = s.eventPublisher.Publish(ctx, exchangeName, routingKey, amqp.Publishing{
-//         ContentType: "application/json",
-//         Body:        []byte(fmt.Sprintf(`{"id":"%s"}`, userID)),
-//     })
-//     if err != nil {
-//         return fmt.Errorf("failed to publish event: %w", err)
-//     }
+	// Publish the event
+	err = s.eventPublisher.Publish(ctx, exchangeName, routingKey, amqp.Publishing{
+		ContentType: "application/json",
+		Body:        []byte(fmt.Sprintf(`{"id":"%s"}`, userID)),
+	})
+	if err != nil {
+		return fmt.Errorf("failed to publish event: %w", err)
+	}
 
-//     return nil
-// }
+	return nil
+}
+
 //!
 // func (s *UserService) StartListening() {
 // 	// Listen for registration messages

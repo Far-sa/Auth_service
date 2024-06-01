@@ -6,7 +6,6 @@ import (
 	httpHandler "authorization-service/delivery/http"
 	"authorization-service/infrastructure/database"
 	"authorization-service/infrastructure/database/migrator"
-	"authorization-service/infrastructure/messaging"
 	"authorization-service/infrastructure/messaging/rabbitmq"
 	"authorization-service/infrastructure/repository"
 	"authorization-service/internal/service"
@@ -51,19 +50,20 @@ func main() {
 	// Initialize repository, service, and handler
 	userRepo := repository.NewRepository(db)
 
-	amqpUrl := "amqp://guest:guest@rabbitmq:5672/"
+	amqpUrl := "amqp://guest:guest@localhost:5672/"
 	rabbitAdapter, err := rabbitmq.NewRabbitMQAdapter(amqpUrl)
 	if err != nil {
 		log.Fatalf("Failed to create RabbitMQ adapter: %v", err)
 	}
 	defer rabbitAdapter.Close()
 
-	consumer, err := messaging.NewRabbitMQConsumer(rabbitAdapter, "user_authenticated_queue", "user.authenticated", "auth_exchange", nil)
+	consumer, err := rabbitmq.NewRabbitMQAdapter(amqpUrl)
 	if err != nil {
 		log.Fatalf("Failed to create RabbitMQ consumer: %v", err)
 	}
 
-	authzService := service.NewAuthorizationService(userRepo, consumer)
+	authzService := service.NewAuthzService(userRepo, consumer)
+	authzService.ListenForUserEvents()
 
 	// Start gRPC server in a separate goroutine
 	go func() {
@@ -98,7 +98,7 @@ func main() {
 
 	e := echo.New()
 	e.POST("/register", authzHandler.AssignRole)
-	e.GET("/getUser", authzHandler.CheckPermission)
+	// e.GET("/getUser", authzHandler.CheckPermission)
 
 	log.Println("HTTP server is running on port 8080")
 	if err := e.Start(":8080"); err != nil {

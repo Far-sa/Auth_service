@@ -14,9 +14,9 @@ import (
 // 	return &PostgresRoleRepository{db}
 // }
 
-func (r *DB) AssignRole(ctx context.Context, username, role string) error {
-	query := `INSERT INTO roles (username, role) VALUES ($1, $2) ON CONFLICT (username) DO UPDATE SET role = $2`
-	_, err := r.conn.Conn().ExecContext(ctx, query, username, role)
+func (r *DB) AssignRole(ctx context.Context, userID, role string) error {
+	query := `INSERT INTO roles (user_id, role) VALUES ($1, $2) ON CONFLICT (username) DO UPDATE SET role = $2`
+	_, err := r.conn.Conn().ExecContext(ctx, query, userID, role)
 	if err != nil {
 		log.Printf("Error assigning role: %v", err)
 		return err

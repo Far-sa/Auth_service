@@ -28,7 +28,7 @@ service AuthorizationService {
 
 // AssignRoleRequest is the request message for AssignRole.
 message AssignRoleRequest {
-  string username = 1;
+  string user_id = 1;
   string role = 2;
 }
 
