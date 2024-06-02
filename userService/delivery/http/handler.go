@@ -31,6 +31,18 @@ func (h *UserHandler) SignUp(c echo.Context) error {
 
 }
 
+func (h *UserHandler) GetUser(c echo.Context) error {
+
+	userID := c.Param("id")
+	user, err := h.userService.GetUser(c.Request().Context(), userID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest)
+	}
+
+	return c.JSON(http.StatusOK, user)
+
+}
+
 func (h *UserHandler) GetUserByEmail(c echo.Context) error {
 	var userReq param.GetUserByEmailRequest
 	if err := c.Bind(&userReq); err != nil {

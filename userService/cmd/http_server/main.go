@@ -47,8 +47,9 @@ func HttpServer() {
 	userHandler := httpHandler.NewHTTPAuthHandler(userSvc)
 
 	e := echo.New()
-	e.POST("/register", userHandler.SignUp)
-	e.GET("/getUser", userHandler.GetUserByEmail)
+	e.POST("/users/register", userHandler.SignUp)
+	// e.GET("/users/getUser", userHandler.GetUserByEmail)
+	e.GET("/users/getuser/:id", userHandler.GetUser)
 
 	log.Println("HTTP server is running on port 8081")
 	if err := e.Start(":8081"); err != nil {
