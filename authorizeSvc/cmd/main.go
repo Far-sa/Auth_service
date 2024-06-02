@@ -97,7 +97,8 @@ func main() {
 	authzHandler := httpHandler.NewHTTPAuthzHandler(authzService)
 
 	e := echo.New()
-	e.POST("/register", authzHandler.AssignRole)
+	e.POST("/authz/assign-role", authzHandler.AssignRole)
+	e.POST("/authz/update-role", authzHandler.UpdateRole)
 	// e.GET("/getUser", authzHandler.CheckPermission)
 
 	log.Println("HTTP server is running on port 8080")

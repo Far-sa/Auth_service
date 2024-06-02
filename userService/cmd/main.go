@@ -83,7 +83,7 @@ func main() {
 
 	e := echo.New()
 	e.POST("/register", userHandler.SignUp)
-	e.GET("/getUser", userHandler.GetUserByEmail)
+	e.GET("/getUser/:id", userHandler.GetUser)
 
 	log.Println("HTTP server is running on port 8080")
 	if err := e.Start(":8080"); err != nil {
