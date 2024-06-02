@@ -5,6 +5,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"user-service/internal/entity"
+
+	"github.com/lib/pq"
 )
 
 type SqlDB struct {
@@ -34,4 +37,19 @@ func NewSQLDB(dsn string) (*SqlDB, error) {
 	}
 
 	return &SqlDB{db: db}, nil
+}
+
+func (db *SqlDB) GetUserByID(ctx context.Context, userID string) (*entity.UserProfile, error) {
+	var user entity.UserProfile
+	query := `SELECT id, full_name, username, email, created_at, birthdate FROM users WHERE user_id = $1`
+	row := db.db.QueryRowContext(ctx, query, userID)
+	err := row.Scan(&user.ID, &user.FullName, &user.Username, &user.Email, &user.CreatedAt, &user.Birthdate)
+	if err != nil {
+		if pqErr, ok := err.(*pq.Error); ok { // Handle specific postgres errors if needed
+			// Handle specific postgres error here
+			return nil, fmt.Errorf("error getting user: %w", err)
+		}
+		return nil, fmt.Errorf("error scanning user: %w", err)
+	}
+	return &user, nil
 }

@@ -4,7 +4,7 @@
 // - protoc             v4.25.3
 // source: shared-proto/authz.proto
 
-package authz
+package authorize
 
 import (
 	context "context"
@@ -39,7 +39,7 @@ func NewAuthorizationServiceClient(cc grpc.ClientConnInterface) AuthorizationSer
 
 func (c *authorizationServiceClient) AssignRole(ctx context.Context, in *AssignRoleRequest, opts ...grpc.CallOption) (*AssignRoleResponse, error) {
 	out := new(AssignRoleResponse)
-	err := c.cc.Invoke(ctx, "/authz.AuthorizationService/AssignRole", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/authorize.AuthorizationService/AssignRole", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func (c *authorizationServiceClient) AssignRole(ctx context.Context, in *AssignR
 
 func (c *authorizationServiceClient) CheckPermission(ctx context.Context, in *CheckPermissionRequest, opts ...grpc.CallOption) (*CheckPermissionResponse, error) {
 	out := new(CheckPermissionResponse)
-	err := c.cc.Invoke(ctx, "/authz.AuthorizationService/CheckPermission", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/authorize.AuthorizationService/CheckPermission", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func (c *authorizationServiceClient) CheckPermission(ctx context.Context, in *Ch
 
 func (c *authorizationServiceClient) UpdateRole(ctx context.Context, in *UpdateRoleRequest, opts ...grpc.CallOption) (*UpdateRoleResponse, error) {
 	out := new(UpdateRoleResponse)
-	err := c.cc.Invoke(ctx, "/authz.AuthorizationService/UpdateRole", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/authorize.AuthorizationService/UpdateRole", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +112,7 @@ func _AuthorizationService_AssignRole_Handler(srv interface{}, ctx context.Conte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/authz.AuthorizationService/AssignRole",
+		FullMethod: "/authorize.AuthorizationService/AssignRole",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AuthorizationServiceServer).AssignRole(ctx, req.(*AssignRoleRequest))
@@ -130,7 +130,7 @@ func _AuthorizationService_CheckPermission_Handler(srv interface{}, ctx context.
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/authz.AuthorizationService/CheckPermission",
+		FullMethod: "/authorize.AuthorizationService/CheckPermission",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AuthorizationServiceServer).CheckPermission(ctx, req.(*CheckPermissionRequest))
@@ -148,7 +148,7 @@ func _AuthorizationService_UpdateRole_Handler(srv interface{}, ctx context.Conte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/authz.AuthorizationService/UpdateRole",
+		FullMethod: "/authorize.AuthorizationService/UpdateRole",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AuthorizationServiceServer).UpdateRole(ctx, req.(*UpdateRoleRequest))
@@ -160,7 +160,7 @@ func _AuthorizationService_UpdateRole_Handler(srv interface{}, ctx context.Conte
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var AuthorizationService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "authz.AuthorizationService",
+	ServiceName: "authorize.AuthorizationService",
 	HandlerType: (*AuthorizationServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

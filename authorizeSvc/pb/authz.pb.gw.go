@@ -2,11 +2,11 @@
 // source: shared-proto/authz.proto
 
 /*
-Package authz is a reverse proxy.
+Package authorize is a reverse proxy.
 
 It translates gRPC into RESTful JSON APIs.
 */
-package authz
+package authorize
 
 import (
 	"context"
@@ -123,7 +123,7 @@ func RegisterAuthorizationServiceHandlerServer(ctx context.Context, mux *runtime
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/authz.AuthorizationService/AssignRole", runtime.WithHTTPPathPattern("/v1/authz/assign-role"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/authorize.AuthorizationService/AssignRole", runtime.WithHTTPPathPattern("/v1/authz/assign-role"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -148,7 +148,7 @@ func RegisterAuthorizationServiceHandlerServer(ctx context.Context, mux *runtime
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/authz.AuthorizationService/CheckPermission", runtime.WithHTTPPathPattern("/v1/authz/check-permission"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/authorize.AuthorizationService/CheckPermission", runtime.WithHTTPPathPattern("/v1/authz/check-permission"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -173,7 +173,7 @@ func RegisterAuthorizationServiceHandlerServer(ctx context.Context, mux *runtime
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/authz.AuthorizationService/UpdateRole", runtime.WithHTTPPathPattern("/v1/authz/update-role"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/authorize.AuthorizationService/UpdateRole", runtime.WithHTTPPathPattern("/v1/authz/update-role"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -237,7 +237,7 @@ func RegisterAuthorizationServiceHandlerClient(ctx context.Context, mux *runtime
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/authz.AuthorizationService/AssignRole", runtime.WithHTTPPathPattern("/v1/authz/assign-role"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/authorize.AuthorizationService/AssignRole", runtime.WithHTTPPathPattern("/v1/authz/assign-role"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -259,7 +259,7 @@ func RegisterAuthorizationServiceHandlerClient(ctx context.Context, mux *runtime
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/authz.AuthorizationService/CheckPermission", runtime.WithHTTPPathPattern("/v1/authz/check-permission"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/authorize.AuthorizationService/CheckPermission", runtime.WithHTTPPathPattern("/v1/authz/check-permission"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -281,7 +281,7 @@ func RegisterAuthorizationServiceHandlerClient(ctx context.Context, mux *runtime
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/authz.AuthorizationService/UpdateRole", runtime.WithHTTPPathPattern("/v1/authz/update-role"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/authorize.AuthorizationService/UpdateRole", runtime.WithHTTPPathPattern("/v1/authz/update-role"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
