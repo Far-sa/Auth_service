@@ -11,3 +11,12 @@ type User struct {
 	ID string // The ID of the user
 	// ... other fields ...
 }
+
+type RoleAssignmentRequest struct {
+	UserID string `json:"userId"`
+}
+
+type RoleUpdateRequest struct {
+	UserID  string `json:"userId"`
+	NewRole string `json:"newRole"` // Assuming role is represented as a string
+}

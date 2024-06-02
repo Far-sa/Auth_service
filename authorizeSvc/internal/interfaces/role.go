@@ -2,6 +2,7 @@ package interfaces
 
 import (
 	"authorization-service/internal/entity"
+	"authorization-service/internal/param"
 	"context"
 	"errors"
 
@@ -11,20 +12,20 @@ import (
 var ErrRoleNotFound = errors.New("role not found")
 
 type AuthorizationService interface {
-	AssignRole(ctx context.Context, userID string) error
-	UpdateUserRole(userID string, newRole entity.Role) error
+	AssignRole(ctx context.Context, userID param.RoleAssignmentRequest) error
+	UpdateUserRole(ctx context.Context, userID string, newRole param.RoleUpdateRequest) error
 
 	// CheckPermission(ctx context.Context, username, permission string) (bool, error)
 	// HandleUserAuthenticatedEvent(ctx context.Context, message string) error
 }
 
 type RoleRepository interface {
-	AssignRole(ctx context.Context, userID, role string) error
 	CheckPermission(ctx context.Context, username, permission string) (bool, error)
-	UpdateUserRoles(ctx context.Context, userID string, role string) error
+	// UpdateUserRoles(ctx context.Context, userID string, role string) error
 	//!
-	GetRoleByUserID(userID string) (entity.Role, error)
-	UpdateRole(userID string, newRole entity.Role) error
+	AssignRole(ctx context.Context, userID, role string) error
+	GetRoleByUserID(ctx context.Context, userID string) (entity.Role, error)
+	UpdateRole(ctx context.Context, userID string, newRole entity.Role) error
 }
 
 type RoleEvents interface {

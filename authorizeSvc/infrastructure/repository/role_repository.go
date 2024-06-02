@@ -41,7 +41,8 @@ func (r *DB) CheckPermission(ctx context.Context, username, permission string) (
 func (r *DB) UpdateUserRoles(ctx context.Context, userID string, role string) error {
 	log.Printf("Updating roles for user: %s to role: %s", userID, role)
 	query := "update users set role = $1 where id = $2"
-	_, err := r.conn.Conn().ExecContext(ctx, query, role, userID)
+	row := r.conn.Conn().QueryRowContext(ctx, query, role, userID)
+	err := row.Err()
 
 	if err != nil {
 		// Log and return the error if the query execution failed
@@ -51,23 +52,30 @@ func (r *DB) UpdateUserRoles(ctx context.Context, userID string, role string) er
 	return nil
 }
 
-func (r *DB) GetRoleByUserID(userID string) (entity.Role, error) {
-	// Implement the logic to fetch role from the database using userID
+func (r *DB) GetRoleByUserID(ctx context.Context, userID string) (entity.Role, error) {
+	query := "SELECT * FROM roles WHERE user_id = $1"
+	row := r.conn.Conn().QueryRowContext(ctx, query, userID)
+	err := row.Err() // Add this line to declare and assign the error variable
+	if err != nil {
+		return entity.Role{}, err
+	}
 	// This is a mock implementation
 	if userID == "admin" {
-		return entity.Role{ID: 1, Name: "Admin"}, nil
+		return entity.Role{ID: "1", Name: "Admin"}, nil
 	} else if userID == "user" {
-		return entity.Role{ID: 2, Name: "User"}, nil
+		return entity.Role{ID: "2", Name: "User"}, nil
 	}
 	return entity.Role{}, interfaces.ErrRoleNotFound
 }
 
-func (r *DB) UpdateRole(userID string, newRole entity.Role) error {
-	// Implement the logic to update the role in the database
-	// This is a mock implementation
+func (r *DB) UpdateRole(ctx context.Context, userID string, newRole entity.Role) error {
 	if userID == "" || newRole.Name == "" {
 		return errors.New("invalid input")
 	}
-	// Assume we update the role successfully
+
+	query := "UPDATE roles SET role = $1 WHERE user_id = $2"
+	if _, err := r.conn.Conn().ExecContext(ctx, query, newRole.Name, userID); err != nil {
+		return fmt.Errorf("failed to update role: %w", err)
+	}
 	return nil
 }

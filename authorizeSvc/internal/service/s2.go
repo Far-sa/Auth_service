@@ -3,6 +3,7 @@ package service
 import (
 	"authorization-service/internal/entity"
 	"authorization-service/internal/interfaces"
+	"authorization-service/internal/param"
 	"context"
 	"encoding/json"
 	"errors"
@@ -25,43 +26,55 @@ func NewAuthzService(roleRepo interfaces.RoleRepository, consumer interfaces.Rol
 	return &AuthzService{roleRepo: roleRepo, consumer: consumer}
 }
 
-func (s *AuthzService) AssignRole(ctx context.Context, userID string) error {
-	//TODO  get role from db
-	role, err := s.roleRepo.GetRoleByUserID(userID)
+func (s *AuthzService) AssignRole(ctx context.Context, req param.RoleAssignmentRequest) error {
+	// Attempt to retrieve the existing role for the user
+	role, err := s.roleRepo.GetRoleByUserID(ctx, req.UserID)
 	if err != nil {
 		if errors.Is(err, interfaces.ErrRoleNotFound) {
-			log.Printf("No role found for user %s, assigning default role", userID)
-			role = entity.Role{Name: DefaultRole}
+			// If no role is found, assign the default role
+			err = s.roleRepo.AssignRole(ctx, req.UserID, DefaultRole)
+			if err != nil {
+				// Handle error when assigning a new role fails
+				log.Printf("Failed to assign default role to user %s: %v", req.UserID, err)
+				return err
+			}
+			// Log successful default role assignment
+			log.Printf("Assigned default role to user %s", req.UserID)
 		} else {
-			log.Printf("Failed to assign role: %v", err)
+			// Log and return any other error that occurred while getting the role
+			log.Printf("Failed to get role for user %s: %v", req.UserID, err)
 			return err
 		}
+	} else {
+		// If the user already has a role, there's nothing to do
+		log.Printf("User %s already has a role assigned: %s", req.UserID, role.Name)
 	}
 
-	// log.Printf("Assigned role %s to user %s with email %s", role.Name, user.ID, user.Email)
-	fmt.Println("role is :", role)
+	// The role assignment was successful, or the user already had a role
 	return nil
-
-	//*  Logic to assign role to user
-	// role := "user"
-	// err := s.roleRepo.AssignRole(ctx, userID, role)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// log.Printf("Assigned role to user %s", userID)
-	// return nil
 }
 
-//TODO use param
+func (s *AuthzService) UpdateUserRole(ctx context.Context, req param.RoleUpdateRequest) error {
 
-func (s *AuthzService) UpdateUserRole(userID string, newRole entity.Role) error {
-	err := s.roleRepo.UpdateRole(userID, newRole)
+	// Check if the new role is different from the current one
+	currentRole, err := s.roleRepo.GetRoleByUserID(ctx, req.UserID)
 	if err != nil {
-		log.Printf("Failed to update role for user %s: %v", userID, err)
-		return err
+		// Handle error, possibly not found or db error
+		return fmt.Errorf("error retrieving current role for user %s: %w", req.UserID, err)
 	}
-	log.Printf("Updated role for user %s to %s", userID, newRole.Name)
+
+	if currentRole.Name == req.NewRole {
+		// No update needed, return early
+		return nil
+	}
+
+	newRole := entity.Role{Name: req.NewRole}
+	err = s.roleRepo.UpdateRole(ctx, currentRole.ID, newRole)
+	if err != nil {
+		return fmt.Errorf("failed to update role for user %s: %w", req.UserID, err)
+	}
+
+	log.Printf("Updated role for user %s to %s", req.UserID, newRole.Name)
 	return nil
 }
 
@@ -99,7 +112,7 @@ func (s *AuthzService) ListenForUserEvents() error {
 			}
 
 			// Assign role to the user
-			if err := s.AssignRole(context.Background(), userID); err != nil {
+			if err := s.AssignRole(context.Background(), param.RoleAssignmentRequest{UserID: userID}); err != nil {
 				log.Printf("Error assigning role to user: %s", err)
 				continue
 			}
