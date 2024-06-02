@@ -3,30 +3,30 @@ syntax = "proto3";
 package authz;
 
 option go_package = "./;authz";
-//option go_package = "authz";
+// option go_package = "authz";
 
 import "google/api/annotations.proto";
-
 
 // The authorization service definition.
 service AuthorizationService {
   // AssignRole assigns a role to a user.
-  rpc AssignRole(AssignRoleRequest) returns (AssignRoleResponse){
-      option (google.api.http) = {
-      post : "/v1/assign-role"
+  rpc AssignRole(AssignRoleRequest) returns (AssignRoleResponse) {
+    option (google.api.http) = {
+      post : "/v1/authz/assign-role"
       body : "*"
     };
   };
   // CheckPermission checks if a user has a specific permission.
-  rpc CheckPermission(CheckPermissionRequest) returns (CheckPermissionResponse){
-     option (google.api.http) = {
-      post : "/v1/check-permission"
+  rpc CheckPermission(CheckPermissionRequest)
+      returns (CheckPermissionResponse) {
+    option (google.api.http) = {
+      post : "/v1/authz/check-permission"
       body : "*"
     };
   };
-  rpc UpdateRole(UpdateRoleRequest) returns (UpdateRoleResponse){
-     option (google.api.http) = {
-      post : "/v1/update-role"
+  rpc UpdateRole(UpdateRoleRequest) returns (UpdateRoleResponse) {
+    option (google.api.http) = {
+      post : "/v1/authz/update-role"
       body : "*"
     };
   };
@@ -39,8 +39,8 @@ message AssignRoleRequest {
 }
 
 // AssignRoleResponse is the response message for AssignRole.
-message AssignRoleResponse {
-  string message = 1;
+message AssignRoleResponse { 
+  string message = 1; 
 }
 
 // CheckPermissionRequest is the request message for CheckPermission.
@@ -50,14 +50,15 @@ message CheckPermissionRequest {
 }
 
 // CheckPermissionResponse is the response message for CheckPermission.
-message CheckPermissionResponse {
-  bool has_permission = 1;
+message CheckPermissionResponse { 
+  bool has_permission = 1; 
 }
 
 message UpdateRoleRequest {
   string user_id = 1;
   string role = 2;
 }
-message UpdateRoleResponse {
-  string message = 1;
+
+message UpdateRoleResponse { 
+  string message = 1; 
 }

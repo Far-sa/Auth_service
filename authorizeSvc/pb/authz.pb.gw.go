@@ -123,7 +123,7 @@ func RegisterAuthorizationServiceHandlerServer(ctx context.Context, mux *runtime
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/authz.AuthorizationService/AssignRole", runtime.WithHTTPPathPattern("/v1/assign-role"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/authz.AuthorizationService/AssignRole", runtime.WithHTTPPathPattern("/v1/authz/assign-role"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -148,7 +148,7 @@ func RegisterAuthorizationServiceHandlerServer(ctx context.Context, mux *runtime
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/authz.AuthorizationService/CheckPermission", runtime.WithHTTPPathPattern("/v1/check-permission"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/authz.AuthorizationService/CheckPermission", runtime.WithHTTPPathPattern("/v1/authz/check-permission"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -173,7 +173,7 @@ func RegisterAuthorizationServiceHandlerServer(ctx context.Context, mux *runtime
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/authz.AuthorizationService/UpdateRole", runtime.WithHTTPPathPattern("/v1/update-role"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/authz.AuthorizationService/UpdateRole", runtime.WithHTTPPathPattern("/v1/authz/update-role"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -237,7 +237,7 @@ func RegisterAuthorizationServiceHandlerClient(ctx context.Context, mux *runtime
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/authz.AuthorizationService/AssignRole", runtime.WithHTTPPathPattern("/v1/assign-role"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/authz.AuthorizationService/AssignRole", runtime.WithHTTPPathPattern("/v1/authz/assign-role"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -259,7 +259,7 @@ func RegisterAuthorizationServiceHandlerClient(ctx context.Context, mux *runtime
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/authz.AuthorizationService/CheckPermission", runtime.WithHTTPPathPattern("/v1/check-permission"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/authz.AuthorizationService/CheckPermission", runtime.WithHTTPPathPattern("/v1/authz/check-permission"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -281,7 +281,7 @@ func RegisterAuthorizationServiceHandlerClient(ctx context.Context, mux *runtime
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/authz.AuthorizationService/UpdateRole", runtime.WithHTTPPathPattern("/v1/update-role"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/authz.AuthorizationService/UpdateRole", runtime.WithHTTPPathPattern("/v1/authz/update-role"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -301,11 +301,11 @@ func RegisterAuthorizationServiceHandlerClient(ctx context.Context, mux *runtime
 }
 
 var (
-	pattern_AuthorizationService_AssignRole_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "assign-role"}, ""))
+	pattern_AuthorizationService_AssignRole_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "authz", "assign-role"}, ""))
 
-	pattern_AuthorizationService_CheckPermission_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "check-permission"}, ""))
+	pattern_AuthorizationService_CheckPermission_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "authz", "check-permission"}, ""))
 
-	pattern_AuthorizationService_UpdateRole_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "update-role"}, ""))
+	pattern_AuthorizationService_UpdateRole_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "authz", "update-role"}, ""))
 )
 
 var (

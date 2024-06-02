@@ -19,7 +19,7 @@ service UserService {
 
   rpc GetUser(GetUserRequest) returns (GetUserResponse) {
     option (google.api.http) = {
-      get : "/v1/getuser/{user_id}"
+      get : "/v1/users/getuser/{user_id}"
     };
   };
 
