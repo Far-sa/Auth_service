@@ -24,6 +24,12 @@ service AuthorizationService {
       body : "*"
     };
   };
+  rpc UpdateRole(UpdateRoleRequest) returns (UpdateRoleResponse){
+     option (google.api.http) = {
+      post : "/v1/update-role"
+      body : "*"
+    };
+  };
 }
 
 // AssignRoleRequest is the request message for AssignRole.
@@ -46,4 +52,12 @@ message CheckPermissionRequest {
 // CheckPermissionResponse is the response message for CheckPermission.
 message CheckPermissionResponse {
   bool has_permission = 1;
+}
+
+message UpdateRoleRequest {
+  string user_id = 1;
+  string role = 2;
+}
+message UpdateRoleResponse {
+  string message = 1;
 }

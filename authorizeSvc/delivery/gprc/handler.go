@@ -3,7 +3,9 @@ package grpcHandler
 import (
 	"authorization-service/internal/interfaces"
 	authz "authorization-service/pb"
+	"authorization-service/utils/mapper"
 	"context"
+	"fmt"
 	// Replace with your package paths
 )
 
@@ -22,13 +24,27 @@ func NewGRPCHandler(authService interfaces.AuthorizationService) *grpcHandler {
 func (s grpcHandler) AssignRole(ctx context.Context, req *authz.AssignRoleRequest) (*authz.AssignRoleResponse, error) {
 
 	//* proto to param
-	err := s.authService.AssignRole(ctx, req.UserId)
+	paramReq := mapper.PbToParamAssignRoleRequest(req)
+	err := s.authService.AssignRole(ctx, paramReq)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to assign role: %w", err)
 	}
 
 	//* param to proto
-	return &authz.AssignRoleResponse{Message: "Role assigned successfully"}, nil
+	pbrRsp := mapper.ToPbAssignRoleResponse(&paramReq)
+	return &authz.AssignRoleResponse{Message: pbrRsp.Message}, nil
+}
+
+func (s grpcHandler) UpdateRole(ctx context.Context, req *authz.UpdateRoleRequest) (*authz.UpdateRoleResponse, error) {
+
+	paramReq := mapper.PbToParamUpdateRoleRequest(req)
+	err := s.authService.UpdateUserRole(ctx, paramReq)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update role: %w", err)
+	}
+
+	pbrRsp := mapper.ToPbUpdateRoleResponse(&paramReq)
+	return &authz.UpdateRoleResponse{Message: pbrRsp.Message}, nil
 }
 
 // func (s grpcHandler) CheckPermission(ctx context.Context, req *authz.CheckPermissionRequest) (*authz.CheckPermissionResponse, error) {

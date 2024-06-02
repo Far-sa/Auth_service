@@ -13,7 +13,7 @@ var ErrRoleNotFound = errors.New("role not found")
 
 type AuthorizationService interface {
 	AssignRole(ctx context.Context, userID param.RoleAssignmentRequest) error
-	UpdateUserRole(ctx context.Context, userID string, newRole param.RoleUpdateRequest) error
+	UpdateUserRole(ctx context.Context, newRole param.RoleUpdateRequest) error
 
 	// CheckPermission(ctx context.Context, username, permission string) (bool, error)
 	// HandleUserAuthenticatedEvent(ctx context.Context, message string) error

@@ -16,6 +16,9 @@ type RoleAssignmentRequest struct {
 	UserID string `json:"userId"`
 }
 
+type RoleAssignmentResponse struct {
+	Message string `json:"message"`
+}
 type RoleUpdateRequest struct {
 	UserID  string `json:"userId"`
 	NewRole string `json:"newRole"` // Assuming role is represented as a string
