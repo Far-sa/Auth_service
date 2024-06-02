@@ -8,11 +8,10 @@ import (
 	mapper "authentication-service/utils/protobufMapper"
 	"context"
 	"errors"
+	"log"
 	user "user-service/pb"
 
 	"golang.org/x/crypto/bcrypt"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 // AuthenticationService interface defines methods for user authentication
@@ -37,16 +36,23 @@ func NewAuthService(authRepository interfaces.AuthRepository, messagePublisher i
 
 func (s *AuthService) Login(ctx context.Context, loginRequest param.LoginRequest) (param.LoginResponse, error) {
 
-	//???????
-	protoReq := mapper.ToProtoGetUserRequest(loginRequest)
+	protoReq, err := mapper.ToProtoGetUserEmailRequest(loginRequest)
+	if err != nil {
+		log.Printf("Error converting login request to proto: %v", err)
+		return param.LoginResponse{}, errors.New("internal server error")
+	}
 
 	userResp, err := s.userClient.GetUserByEmail(ctx, protoReq)
 	if err != nil {
-		return param.LoginResponse{}, status.Errorf(codes.Internal, "could not get user: %v", err)
+		log.Printf("Error getting user by email: %v", err)
+		return param.LoginResponse{}, errors.New("internal server error")
 	}
 
-	//?????
-	paramUser := mapper.ToParamGetUserResponse(userResp)
+	paramUser, err := mapper.ToParamGetUserResponse(userResp)
+	if err != nil {
+		log.Printf("Error converting user response to param: %v", err)
+		return param.LoginResponse{}, errors.New("internal server error")
+	}
 
 	//* get user data from own database and compare passwords
 	// user, err := s.authRepository.FindByUserEmail(ctx, loginRequest.Email)

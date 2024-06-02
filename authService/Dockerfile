@@ -1,36 +1,3 @@
-FROM golang:1.22-alpine AS builder
-
-# Set the current working directory inside the container
-WORKDIR /app
-
-# Copy go mod and sum files
-COPY go.mod go.sum ./
-
-RUN go mod download
-
-# Copy the source code into the container
-COPY . .
-
-# Build the Go app
-RUN go build -o /app/auth-service ./cmd
-
-# Minimal runtime image
-FROM alpine:latest
-
-# Install necessary tools
-RUN apk add --no-cache ca-certificates postgresql-client
-
-# Copy the built binary from the builder
-COPY --from=builder /app/auth-service /app/auth-service
-
-# Expose port for your service
-EXPOSE 50051
-
-# Command to run your service
-CMD ["/app/auth-service"]
-
-#!!!
-# # Stage 1: Build the application
 # FROM golang:1.22-alpine AS builder
 
 # # Set the current working directory inside the container
@@ -39,30 +6,107 @@ CMD ["/app/auth-service"]
 # # Copy go mod and sum files
 # COPY go.mod go.sum ./
 
-# RUN go mod download && go mod verify
+# RUN go mod download
 
 # # Copy the source code into the container
 # COPY . .
 
-# # Build the Go app
-# RUN go build -o /app/auth-svc ./cmd
+# # Copy the shared proto files
+# COPY ./shared-proto/*.proto ./pb/
 
-# # Stage 2: Create a minimal runtime image
-# #FROM alpine:latest
+# # Build the Go app
+# RUN go build -o /app/auth-service ./cmd
+
+# # Minimal runtime image
 # FROM alpine:latest
 
-# # Install necessary dependencies and remove apk cache in one step
-# RUN apk --no-cache add ca-certificates && rm -rf /var/cache/apk/*
+# # Install necessary tools
+# RUN apk add --no-cache ca-certificates postgresql-client
 
-# # Copy the built Go app from the builder stage
-# COPY --from=builder /app/auth-svc /app/auth-svc
+# # Copy the built binary from the builder
+# COPY --from=builder /app/auth-service /app/auth-service
 
-# # Expose port 50052 to the outside world
+# # Expose port for your service
 # EXPOSE 50051
 
-# # Run the executable
-# CMD ["/app/auth-svc"]
+# # Command to run your service
+# CMD ["/app/auth-service"]
 
+#!! multi stage builder for proto
+
+# First stage: Build the proto files
+# FROM golang:1.16 as protobuilder
+
+# # Install protoc and the Go plugin for protoc
+# RUN apt-get update && apt-get install -y protobuf-compiler && \
+#     go get google.golang.org/protobuf/cmd/protoc-gen-go
+
+# # Download the Google APIs
+# RUN git clone https://github.com/googleapis/googleapis.git
+
+# WORKDIR /proto
+# COPY ./shared-proto/*.proto ./
+# RUN protoc --proto_path=. --proto_path=googleapis --go_out=. *.proto
+
+# # Second stage: Build the Go app
+# FROM golang:1.22 as builder
+
+# WORKDIR /app
+# COPY . .
+# COPY --from=protobuilder /proto/*.pb.go ./pb/
+
+# RUN go mod download
+# RUN go build -o /app/auth-service ./cmd
+
+# # Final stage: Create the runtime image
+# FROM alpine:latest
+
+# RUN apk add --no-cache ca-certificates postgresql-client
+
+# WORKDIR /app
+# COPY --from=builder /app/auth-service .
+
+# EXPOSE 50051
+# CMD ["./auth-service"]
+#!!! use with buf package
+# First stage: Build the proto files
+FROM golang:1.16 as protobuilder
+
+# Install buf
+RUN apt-get update && apt-get install -y curl && \
+    curl -sSL https://github.com/bufbuild/buf/releases/download/v0.43.2/buf-Linux-x86_64 -o /usr/local/bin/buf && \
+    chmod +x /usr/local/bin/buf
+
+# Download the Google APIs
+RUN git clone https://github.com/googleapis/googleapis.git /proto/googleapis
+
+WORKDIR /
+COPY ./shared-proto/*.proto ./proto/
+COPY buf.yaml ./proto/
+
+WORKDIR /proto
+RUN buf generate --path . --path ./googleapis
+
+# Second stage: Build the Go app
+FROM golang:1.22 as builder
+
+WORKDIR /app
+COPY . .
+COPY --from=protobuilder /proto/*.pb.go ./pb/
+
+RUN go mod download
+RUN go build -o /app/auth-service ./cmd
+
+# Final stage: Create the runtime image
+FROM alpine:latest
+
+RUN apk add --no-cache ca-certificates postgresql-client
+
+WORKDIR /app
+COPY --from=builder /app/auth-service .
+
+EXPOSE 50051
+CMD ["./auth-service"]
 #! important
 # FROM alpine:latest AS builder
 

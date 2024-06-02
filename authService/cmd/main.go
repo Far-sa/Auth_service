@@ -22,7 +22,7 @@ import (
 
 func main() {
 
-	dsn := "postgres://postgres:password@localhost:5432/auth_db?sslmode=disable"
+	dsn := "postgres://postgres:password@postgres-auth:5432/auth_db?sslmode=disable"
 	db, err := database.NewSQLDB(dsn)
 	if err != nil {
 		log.Fatalf("Failed to create database: %v", err)
