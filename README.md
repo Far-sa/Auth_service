@@ -1,6 +1,5 @@
 Secure and Scalable Golang Microservices with Docker Integration.
-This repo is a Golang microservices framework designed for secure, scalable development. It utilizes a hexagonal architecture and dependency injection for loose coupling and 
-enhanced testability. 
+This repo is a Golang microservices framework designed for secure, scalable development. It utilizes a hexagonal architecture and dependency injection for loose coupling and enhanced testability. 
 
 Communication between services is a combination of:
 gRPC: Provides high-performance, remote procedure calls (RPC) for efficient service interaction.
