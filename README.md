@@ -6,6 +6,7 @@ gRPC: Provides high-performance, remote procedure calls (RPC) for efficient serv
 RabbitMQ: Enables asynchronous, event-driven communication, allowing services to react to events.
 
 Modular Services for Secure User Management:
+
 user: This service handles core user functionalities like registration, user information retrieval, and potentially other user-related operations.
 auth: Focused on secure authentication, this service handles logins, generates access tokens, and validates credentials.
 authorize: This service manages authorization logic, allowing for role assignment and permission checks for specific resources within the system.
@@ -16,7 +17,8 @@ PostgreSQL: A powerful, open-source object-relational database (ORDBMS) for comp
 MySQL: A widely used, open-source relational database management system (RDBMS) for simpler data structures.
 
 Streamlined Development Workflow with Docker:
-Image Building: gir leverages Docker for building containerized images for each microservice, ensuring consistent environments and simplifying deployments.
+
+Image Building: leverages Docker for building containerized images for each microservice, ensuring consistent environments and simplifying deployments.
 Orchestration: Docker Compose or other orchestration tools can be used to manage and scale deployments of gir's microservices on a container platform like Docker Swarm or Kubernetes.
 
 This repository provides a robust foundation for building secure, scalable, and maintainable microservices in Golang, with the added benefit of a streamlined development 
