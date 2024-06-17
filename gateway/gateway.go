@@ -5,9 +5,9 @@ import (
 	"log"
 	"net/http"
 
-	auth "authentication-service/auth"
-	authz "authorization-service/authz"
-	user "user-service/user"
+	auth "gateway/proto/auth"
+	authz "gateway/proto/authz"
+	user "gateway/proto/user"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
@@ -17,7 +17,7 @@ func RunHTTPGateway(ctx context.Context, grpcEndpoint string) error {
 	mux := runtime.NewServeMux()
 	opts := []grpc.DialOption{grpc.WithInsecure()}
 
-	if err := user.RegisterUserServiceHandlerFromEndpoint(ctx, mux, opts); err != nil {
+	if err := user.RegisterUserServiceHandlerFromEndpoint(ctx, mux, grpcEndpoint, opts); err != nil {
 		return err
 	}
 
