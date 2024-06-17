@@ -1,0 +1,28 @@
+http:
+  middlewares:
+    auth:
+      forwardAuth:
+        #address: "http://auth-service:50053/"
+        address: "http://localhost:50053/"
+        trustForwardHeader: true
+    ratelimiter:
+      rateLimit:
+        average: 100 # The average number of requests to allow per second
+        burst: 50 # The maximum number of requ
+  routers:
+    gateway:
+      rule: "Host(`gateway.localhost`)"
+      service: gateway
+      middlewares:
+        - ratelimiter
+      entryPoints:
+        - web
+
+  services:
+    gateway:
+      loadBalancer:
+        servers:
+          - url: "http://gateway:8081"
+
+
+#
