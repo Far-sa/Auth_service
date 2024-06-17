@@ -1,17 +1,15 @@
 package main
 
 import (
-	"authentication-service/infrastructure/database/migrator"
-	"context"
 	"log"
 	"net"
 	"path"
 	standard_runtime "runtime"
 
-	"user-service/cmd/gateway"
 	grpcHandler "user-service/delivery/grpc"
 	httpHandler "user-service/delivery/http"
 	"user-service/infrastructure/database"
+	"user-service/infrastructure/database/migrator"
 	"user-service/infrastructure/messaging"
 	"user-service/infrastructure/repository"
 	"user-service/internal/service"
@@ -68,15 +66,15 @@ func main() {
 	}()
 
 	// Start gRPC-Gateway in a separate goroutine
-	go func() {
-		ctx := context.Background()
-		ctx, cancel := context.WithCancel(ctx)
-		defer cancel()
+	// go func() {
+	// 	ctx := context.Background()
+	// 	ctx, cancel := context.WithCancel(ctx)
+	// 	defer cancel()
 
-		if err := gateway.RunHTTPGateway(ctx, ":50051"); err != nil {
-			log.Fatalf("Failed to run gRPC-Gateway: %v", err)
-		}
-	}()
+	// 	if err := gateway.RunHTTPGateway(ctx, ":50051"); err != nil {
+	// 		log.Fatalf("Failed to run gRPC-Gateway: %v", err)
+	// 	}
+	// }()
 
 	// Start HTTP server in the main goroutine
 	userHandler := httpHandler.NewHTTPAuthHandler(userSvc)

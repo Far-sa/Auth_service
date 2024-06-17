@@ -1,7 +1,6 @@
 package main
 
 import (
-	"authentication-service/cmd/gateway"
 	grpcHandler "authentication-service/delivery/grpc"
 	httpHandler "authentication-service/delivery/http"
 	"authentication-service/domain/services"
@@ -10,7 +9,6 @@ import (
 	"authentication-service/infrastructure/messaging"
 	"authentication-service/infrastructure/repository"
 	auth "authentication-service/pb"
-	"context"
 	"log"
 	"net"
 	"path"
@@ -65,15 +63,15 @@ func main() {
 	}()
 
 	// Start gRPC-Gateway in a separate goroutine
-	go func() {
-		ctx := context.Background()
-		ctx, cancel := context.WithCancel(ctx)
-		defer cancel()
+	// go func() {
+	// 	ctx := context.Background()
+	// 	ctx, cancel := context.WithCancel(ctx)
+	// 	defer cancel()
 
-		if err := gateway.RunHTTPGateway(ctx, ":50052"); err != nil {
-			log.Fatalf("Failed to run gRPC-Gateway: %v", err)
-		}
-	}()
+	// 	if err := gateway.RunHTTPGateway(ctx, ":50052"); err != nil {
+	// 		log.Fatalf("Failed to run gRPC-Gateway: %v", err)
+	// 	}
+	// }()
 
 	// Start HTTP server in the main goroutine
 	authHandler := httpHandler.NewHTTPAuthHandler(authService)
