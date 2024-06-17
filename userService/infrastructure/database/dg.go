@@ -45,7 +45,7 @@ func (db *SqlDB) GetUserByID(ctx context.Context, userID string) (*entity.UserPr
 	row := db.db.QueryRowContext(ctx, query, userID)
 	err := row.Scan(&user.ID, &user.FullName, &user.Username, &user.Email, &user.CreatedAt, &user.Birthdate)
 	if err != nil {
-		if pqErr, ok := err.(*pq.Error); ok { // Handle specific postgres errors if needed
+		if _, ok := err.(*pq.Error); ok { // Handle specific postgres errors if needed
 			// Handle specific postgres error here
 			return nil, fmt.Errorf("error getting user: %w", err)
 		}
