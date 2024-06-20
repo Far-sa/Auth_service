@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 	"user-service/internal/entity"
@@ -38,7 +39,7 @@ func TestRegisterUser(t *testing.T) {
 		CreatedAt:   time.Now(),
 	}
 
-	mockRepo.On("CreateUser", ctx, mock.AnythingOfType("*entity.UserProfile")).Return(expectedUser, nil)
+	mockRepo.On("CreateUser", ctx, mock.AnythingOfType("*entity.UserProfile")).Return(expectedUser, nil).Once()
 	mockEvents.On("DeclareExchange", "user_events_exchange", "topic").Return(nil)
 	mockEvents.On("Publish", ctx, "user_events_exchange", "user.created", mock.AnythingOfType("amqp.Publishing")).Return(nil)
 
@@ -53,4 +54,44 @@ func TestRegisterUser(t *testing.T) {
 
 	mockRepo.AssertExpectations(t)
 	mockEvents.AssertExpectations(t)
+}
+
+func TestGetUserByEmail(t *testing.T) {
+	mockRepo := mocks.NewUserRepositoryMock()
+	userSvc := NewUserService(mockRepo, nil)
+
+	ctx := context.Background()
+	email := "test@example.com"
+
+	t.Run("user found", func(t *testing.T) {
+		expectedUser := &entity.UserProfile{
+			ID:       "1",
+			Email:    email,
+			FullName: "Test User",
+		}
+
+		mockRepo.On("FindUserByEmail", ctx, email).Return(expectedUser, nil).Once()
+
+		resp, err := userSvc.GetUserByEmail(ctx, email)
+
+		assert.NoError(t, err)
+		assert.Equal(t, expectedUser.ID, resp.ID)
+		assert.Equal(t, expectedUser.Email, resp.Email)
+		assert.Equal(t, expectedUser.FullName, resp.FullName)
+
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("user not found", func(t *testing.T) {
+		mockRepo.On("FindUserByEmail", ctx, email).Return(nil, errors.New("user not found"))
+
+		resp, err := userSvc.GetUserByEmail(ctx, email)
+
+		assert.Error(t, err)
+		assert.Empty(t, resp.ID)
+		assert.Empty(t, resp.Email)
+		assert.Empty(t, resp.FullName)
+
+		mockRepo.AssertExpectations(t)
+	})
 }
