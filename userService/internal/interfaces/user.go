@@ -14,6 +14,7 @@ type UserService interface {
 	Register(ctx context.Context, req param.RegisterRequest) (param.RegisterResponse, error)
 }
 
+// go generate mockery --name UserRepository
 type UserRepository interface {
 	GetUserByID(ctx context.Context, userID string) (*entity.UserProfile, error)
 	FindUserByEmail(ctx context.Context, Email string) (*entity.UserProfile, error)

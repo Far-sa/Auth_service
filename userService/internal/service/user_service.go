@@ -1,13 +1,13 @@
 package service
 
 import (
-	"authentication-service/utils"
 	"context"
 	"fmt"
 	"time"
 	"user-service/internal/entity"
 	"user-service/internal/interfaces"
 	"user-service/internal/param"
+	"user-service/utils"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
