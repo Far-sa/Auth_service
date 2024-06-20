@@ -95,3 +95,26 @@ func TestGetUserByEmail(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 	})
 }
+func TestGetUser(t *testing.T) {
+	mockRepo := mocks.NewUserRepositoryMock()
+	userSvc := NewUserService(mockRepo, nil)
+
+	ctx := context.Background()
+	userID := "1"
+	expectedUser := &entity.UserProfile{
+		ID:        userID,
+		Email:     "test@example.com",
+		FullName:  "Test User",
+		CreatedAt: time.Now(),
+	}
+
+	mockRepo.On("GetUserByID", ctx, userID).Return(expectedUser, nil).Once()
+
+	resp, err := userSvc.GetUser(ctx, userID)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedUser.ID, resp.UserProfile.ID)
+	assert.Equal(t, expectedUser.Email, resp.UserProfile.Email)
+	assert.Equal(t, expectedUser.FullName, resp.UserProfile.Username)
+	assert.Equal(t, expectedUser.CreatedAt, resp.UserProfile.CreatedAt)
+	mockRepo.AssertExpectations(t)
+}
