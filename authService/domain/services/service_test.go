@@ -91,3 +91,112 @@ func TestAuthService_Login(t *testing.T) {
 		})
 	}
 }
+func TestAuthzService_AssignRole(t *testing.T) {
+	ctx := context.Background()
+
+	// Create a mock role repository
+	mockRoleRepo := mocks.NewMockRoleRepository()
+
+	// Create a mock role events consumer
+	mockConsumer := mocks.NewMockRoleEvents()
+
+	// Create an instance of AuthzService
+	authzService := NewAuthzService(mockRoleRepo, mockConsumer)
+
+	// Define the test cases
+	cases := []struct {
+		name          string
+		req           param.RoleAssignmentRequest
+		expectedError error
+	}{
+		{
+			name: "existing role",
+			req: param.RoleAssignmentRequest{
+				UserID: "1",
+			},
+			expectedError: nil,
+		},
+		{
+			name: "no role found",
+			req: param.RoleAssignmentRequest{
+				UserID: "2",
+			},
+			expectedError: nil,
+		},
+		// Add more test cases as needed
+	}
+
+	// Iterate over the test cases
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			// Set up the mock role repository
+			mockRoleRepo.On("GetRoleByUserID", ctx, c.req.UserID).Return(nil, c.expectedError)
+			if c.expectedError == nil {
+				mockRoleRepo.On("AssignRole", ctx, c.req.UserID, DefaultRole).Return(nil)
+			}
+
+			// Call the AssignRole method
+			err := authzService.AssignRole(ctx, c.req)
+
+			// Assert the expected error
+			assert.Equal(t, c.expectedError, err)
+
+			// Verify the mock role repository calls
+			mockRoleRepo.AssertExpectations(t)
+		})
+	}
+}func TestAuthzService_AssignRole(t *testing.T) {
+	ctx := context.Background()
+
+	// Create a mock role repository
+	mockRoleRepo := mocks.NewMockRoleRepository()
+
+	// Create a mock role events consumer
+	mockConsumer := mocks.NewMockRoleEvents()
+
+	// Create an instance of AuthzService
+	authzService := NewAuthzService(mockRoleRepo, mockConsumer)
+
+	// Define the test cases
+	cases := []struct {
+		name          string
+		req           param.RoleAssignmentRequest
+		expectedError error
+	}{
+		{
+			name: "existing role",
+			req: param.RoleAssignmentRequest{
+				UserID: "1",
+			},
+			expectedError: nil,
+		},
+		{
+			name: "no role found",
+			req: param.RoleAssignmentRequest{
+				UserID: "2",
+			},
+			expectedError: nil,
+		},
+		// Add more test cases as needed
+	}
+
+	// Iterate over the test cases
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			// Set up the mock role repository
+			mockRoleRepo.On("GetRoleByUserID", ctx, c.req.UserID).Return(nil, c.expectedError)
+			if c.expectedError == nil {
+				mockRoleRepo.On("AssignRole", ctx, c.req.UserID, DefaultRole).Return(nil)
+			}
+
+			// Call the AssignRole method
+			err := authzService.AssignRole(ctx, c.req)
+
+			// Assert the expected error
+			assert.Equal(t, c.expectedError, err)
+
+			// Verify the mock role repository calls
+			mockRoleRepo.AssertExpectations(t)
+		})
+	}
+}
